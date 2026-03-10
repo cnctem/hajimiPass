@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hajimipass/pages/home/view.dart';
 import 'package:hajimipass/pages/creat/view.dart';
 import 'package:hajimipass/pages/search/view.dart';
@@ -22,6 +23,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      navigatorObservers: [FlutterSmartDialog.observer],
+      builder: FlutterSmartDialog.init(),
       initialRoute: '/',
       routes: {
         '/': (context) => const HomePage(),
