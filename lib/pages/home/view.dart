@@ -62,6 +62,16 @@ class _HomePageState extends State<HomePage> {
                   : '';
 
               return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  child: Text(
+                    account.name.isNotEmpty ? account.name.substring(0, 1).toUpperCase() : '?',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
                 title: Text(account.name),
                 subtitle: Text(
                   firstItemValue,
