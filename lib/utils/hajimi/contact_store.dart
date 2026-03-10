@@ -16,14 +16,14 @@ const String _storageKey = 'encrypted_contacts';
 typedef ResultStatus = String;
 // 'success' | 'fail' | 'access_denied' | 'null_user' | 'duplicate_user'
 
-class _EncryptedPayload {
+class EncryptedPayload {
   final int version;
   final String encryptedData; // base64
   final String iv;
   final String salt;
   final int iterations;
 
-  const _EncryptedPayload({
+  const EncryptedPayload({
     required this.version,
     required this.encryptedData,
     required this.iv,
@@ -31,7 +31,7 @@ class _EncryptedPayload {
     required this.iterations,
   });
 
-  factory _EncryptedPayload.fromJson(Map<String, dynamic> json) => _EncryptedPayload(
+  factory EncryptedPayload.fromJson(Map<String, dynamic> json) => EncryptedPayload(
         version: json['version'] as int,
         encryptedData: json['encryptedData'] as String,
         iv: json['iv'] as String,
@@ -46,6 +46,31 @@ class _EncryptedPayload {
         'salt': salt,
         'iterations': iterations,
       };
+}
+
+class HajimiSecurity {
+  static Future<List<int>> deriveKey(String password, List<int> salt, int iterations) async {
+    final pbkdf2 = Pbkdf2(
+      macAlgorithm: Hmac.sha256(),
+      iterations: iterations,
+      bits: 256,
+    );
+    final secretKey = await pbkdf2.deriveKey(
+      secretKey: SecretKey(utf8.encode(password)),
+      nonce: salt,
+    );
+    return secretKey.extractBytes();
+  }
+
+  static List<int> randomBytes(int length) {
+    final buf = Uint8List(length);
+    // dart:math SecureRandom 不可用时用 cryptography 的
+    final rng = SecureRandom.fast;
+    for (var i = 0; i < length; i++) {
+      buf[i] = rng.nextInt(256);
+    }
+    return buf;
+  }
 }
 
 /// 联系人密钥存储，依赖外部 [storage] 实现持久化（SharedPreferences 或其他）
@@ -92,12 +117,12 @@ class ContactStore extends ChangeNotifier {
     if (raw == null) return 'fail';
 
     try {
-      final payload = _EncryptedPayload.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      final payload = EncryptedPayload.fromJson(jsonDecode(raw) as Map<String, dynamic>);
       final salt = base64Decode(payload.salt);
       final iv = base64Decode(payload.iv);
       final encryptedData = base64Decode(payload.encryptedData);
 
-      final derivedKey = await _deriveKey(pass, salt, payload.iterations);
+      final derivedKey = await HajimiSecurity.deriveKey(pass, salt, payload.iterations);
       final aesGcm = AesGcm.with256bits();
       final secretKey = SecretKey(derivedKey);
 
@@ -197,11 +222,11 @@ class ContactStore extends ChangeNotifier {
   // --- 内部 ---
 
   Future<void> _save() async {
-    final salt = _randomBytes(16);
-    final iv = _randomBytes(12);
+    final salt = HajimiSecurity.randomBytes(16);
+    final iv = HajimiSecurity.randomBytes(12);
     const iterations = 100000;
 
-    final derivedKey = await _deriveKey(_password, salt, iterations);
+    final derivedKey = await HajimiSecurity.deriveKey(_password, salt, iterations);
     final aesGcm = AesGcm.with256bits();
     final secretKey = SecretKey(derivedKey);
 
@@ -215,7 +240,7 @@ class ContactStore extends ChangeNotifier {
     // 存储格式：ciphertext + tag（16字节）拼接后 base64
     final combined = Uint8List.fromList(box.cipherText + box.mac.bytes);
 
-    final payload = _EncryptedPayload(
+    final payload = EncryptedPayload(
       version: 1,
       encryptedData: base64Encode(combined),
       iv: base64Encode(iv),
@@ -223,29 +248,6 @@ class ContactStore extends ChangeNotifier {
       iterations: iterations,
     );
     _storage.setString(_storageKey, jsonEncode(payload.toJson()));
-  }
-
-  Future<List<int>> _deriveKey(String password, List<int> salt, int iterations) async {
-    final pbkdf2 = Pbkdf2(
-      macAlgorithm: Hmac.sha256(),
-      iterations: iterations,
-      bits: 256,
-    );
-    final secretKey = await pbkdf2.deriveKey(
-      secretKey: SecretKey(utf8.encode(password)),
-      nonce: salt,
-    );
-    return secretKey.extractBytes();
-  }
-
-  static List<int> _randomBytes(int length) {
-    final buf = Uint8List(length);
-    // dart:math SecureRandom 不可用时用 cryptography 的
-    final rng = SecureRandom.fast;
-    for (var i = 0; i < length; i++) {
-      buf[i] = rng.nextInt(256);
-    }
-    return buf;
   }
 }
 
