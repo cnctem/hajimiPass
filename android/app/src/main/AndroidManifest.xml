@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="hajimipass"
+        android:label="哈基密码本"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
