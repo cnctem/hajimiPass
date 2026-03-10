@@ -3,8 +3,11 @@ import 'package:hajimipass/pages/home/view.dart';
 import 'package:hajimipass/pages/creat/view.dart';
 import 'package:hajimipass/pages/search/view.dart';
 import 'package:hajimipass/pages/setting/view.dart';
+import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await HajimiStorage.instance.init();
   runApp(const MyApp());
 }
 

@@ -3,8 +3,9 @@ import 'package:hajimipass/pages/edit/control.dart';
 
 class EditPage extends StatefulWidget {
   final EditController? controller;
+  final String? title;
 
-  const EditPage({super.key, this.controller});
+  const EditPage({super.key, this.controller, this.title});
 
   @override
   State<EditPage> createState() => EditPageState();
@@ -34,7 +35,7 @@ class EditPageState extends State<EditPage> {
       builder: (context, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(widget.controller == null ? '编辑账号' : '添加账号'),
+            title: Text(widget.title ?? '编辑账号'),
             actions: [
               IconButton(
                 tooltip: '添加项',
@@ -66,7 +67,7 @@ class EditPageState extends State<EditPage> {
                 _buildFieldCard(
                   context: context,
                   label: Text(
-                    '账号',
+                    '账号名称',
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(context).primaryColor,
@@ -94,7 +95,7 @@ class EditPageState extends State<EditPage> {
                           isDense: true,
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
-                          hintText: '项名称',
+                          hintText: '请输入项名称',
                         ),
                       ),
                       controller: itemCtrl.valueController,
