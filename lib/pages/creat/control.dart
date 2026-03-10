@@ -8,6 +8,7 @@ class CreateController extends EditController {
   static Account _createDefaultAccount() {
     return Account(
       accountItemList: [
+        AccountItem(itemName: '账号', itemValue: ''),
         AccountItem(itemName: '密码', itemValue: ''),
       ],
       favorite: false,

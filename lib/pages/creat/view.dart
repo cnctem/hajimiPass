@@ -56,6 +56,9 @@ class _CreatePageWrapperState extends State<CreatePageWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return EditPage(controller: _controller);
+    return EditPage(
+      controller: _controller,
+      title: '添加账号',
+    );
   }
 }
