@@ -13,12 +13,14 @@ class AccountList {
 
   factory AccountList.fromJson(Map<String, dynamic> json) {
     return AccountList(
-      accountList: (json['accountList'] as List<dynamic>?)
+      accountList:
+          (json['accountList'] as List<dynamic>?)
               ?.map((e) => Account.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       lastEditTime: json['lastEditTime'] as int? ?? 0,
-      tagList: (json['tagList'] as List<dynamic>?)
+      tagList:
+          (json['tagList'] as List<dynamic>?)
               ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -53,14 +55,16 @@ class Account {
 
   factory Account.fromJson(Map<String, dynamic> json) {
     return Account(
-      accountItemList: (json['accountItemList'] as List<dynamic>?)
+      accountItemList:
+          (json['accountItemList'] as List<dynamic>?)
               ?.map((e) => AccountItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       favorite: json['favorite'] as bool? ?? false,
       lastEditTime: json['lastEditTime'] as int? ?? 0,
       name: json['name'] as String? ?? '',
-      tagList: (json['tagList'] as List<dynamic>?)
+      tagList:
+          (json['tagList'] as List<dynamic>?)
               ?.map((e) => Tag.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -82,10 +86,7 @@ class AccountItem {
   String itemName;
   String itemValue;
 
-  AccountItem({
-    required this.itemName,
-    required this.itemValue,
-  });
+  AccountItem({required this.itemName, required this.itemValue});
 
   factory AccountItem.fromJson(Map<String, dynamic> json) {
     return AccountItem(
@@ -95,29 +96,20 @@ class AccountItem {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'itemName': itemName,
-      'itemValue': itemValue,
-    };
+    return {'itemName': itemName, 'itemValue': itemValue};
   }
 }
 
 class Tag {
   String tagName;
 
-  Tag({
-    required this.tagName,
-  });
+  Tag({required this.tagName});
 
   factory Tag.fromJson(Map<String, dynamic> json) {
-    return Tag(
-      tagName: json['tagName'] as String? ?? '',
-    );
+    return Tag(tagName: json['tagName'] as String? ?? '');
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'tagName': tagName,
-    };
+    return {'tagName': tagName};
   }
 }

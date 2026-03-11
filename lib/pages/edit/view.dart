@@ -44,7 +44,9 @@ class EditPageState extends State<EditPage> {
               ),
               IconButton(
                 tooltip: controller.account.favorite ? '取消收藏' : '收藏',
-                icon: Icon(controller.account.favorite ? Icons.star : Icons.star_border),
+                icon: Icon(
+                  controller.account.favorite ? Icons.star : Icons.star_border,
+                ),
                 onPressed: controller.toggleFavorite,
               ),
               IconButton(
@@ -60,7 +62,10 @@ class EditPageState extends State<EditPage> {
             ],
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+              vertical: 16.0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

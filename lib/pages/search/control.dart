@@ -39,10 +39,10 @@ class HajimiSearchController extends ChangeNotifier {
     }
 
     final queryLower = _query.toLowerCase();
-    
+
     // 获取所有账号
     final allAccounts = HajimiStorage.instance.accountList.accountList;
-    
+
     // 过滤账号
     final filtered = allAccounts.where((account) {
       // 匹配账号名称
@@ -54,7 +54,7 @@ class HajimiSearchController extends ChangeNotifier {
       if (_searchNameOnly) {
         return false;
       }
-      
+
       // 匹配账号项
       for (final item in account.accountItemList) {
         if (item.itemName.toLowerCase().contains(queryLower) ||
@@ -62,20 +62,20 @@ class HajimiSearchController extends ChangeNotifier {
           return true;
         }
       }
-      
+
       // 匹配标签
       for (final tag in account.tagList) {
         if (tag.tagName.toLowerCase().contains(queryLower)) {
           return true;
         }
       }
-      
+
       return false;
     }).toList();
-    
+
     // 根据名称排序
     filtered.sort((a, b) => a.name.compareTo(b.name));
-    
+
     _accounts = filtered;
     notifyListeners();
   }

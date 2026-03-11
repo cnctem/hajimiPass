@@ -49,9 +49,7 @@ class _HomePageState extends State<HomePage> {
         listenable: _controller,
         builder: (context, child) {
           if (_controller.accounts.isEmpty) {
-            return const Center(
-              child: Text('暂无账号，请点击右上角 + 添加'),
-            );
+            return const Center(child: Text('暂无账号，请点击右上角 + 添加'));
           }
           return ListView.builder(
             itemCount: _controller.accounts.length,
@@ -63,9 +61,13 @@ class _HomePageState extends State<HomePage> {
 
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   child: Text(
-                    account.name.isNotEmpty ? account.name.substring(0, 1).toUpperCase() : '?',
+                    account.name.isNotEmpty
+                        ? account.name.substring(0, 1).toUpperCase()
+                        : '?',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,

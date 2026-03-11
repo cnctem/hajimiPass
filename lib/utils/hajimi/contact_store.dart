@@ -31,7 +31,8 @@ class EncryptedPayload {
     required this.iterations,
   });
 
-  factory EncryptedPayload.fromJson(Map<String, dynamic> json) => EncryptedPayload(
+  factory EncryptedPayload.fromJson(Map<String, dynamic> json) =>
+      EncryptedPayload(
         version: json['version'] as int,
         encryptedData: json['encryptedData'] as String,
         iv: json['iv'] as String,
@@ -40,16 +41,20 @@ class EncryptedPayload {
       );
 
   Map<String, dynamic> toJson() => {
-        'version': version,
-        'encryptedData': encryptedData,
-        'iv': iv,
-        'salt': salt,
-        'iterations': iterations,
-      };
+    'version': version,
+    'encryptedData': encryptedData,
+    'iv': iv,
+    'salt': salt,
+    'iterations': iterations,
+  };
 }
 
 class HajimiSecurity {
-  static Future<List<int>> deriveKey(String password, List<int> salt, int iterations) async {
+  static Future<List<int>> deriveKey(
+    String password,
+    List<int> salt,
+    int iterations,
+  ) async {
     final pbkdf2 = Pbkdf2(
       macAlgorithm: Hmac.sha256(),
       iterations: iterations,
@@ -86,7 +91,8 @@ class ContactStore extends ChangeNotifier {
   bool get hasClear => _storage.getString(_storageKey) == null;
   bool get hasAuth => _unlocked;
   String get currentContact => _currentContact;
-  List<String> get contactList => _unlocked ? (List<String>.from(_contactMap.keys)..sort()) : [];
+  List<String> get contactList =>
+      _unlocked ? (List<String>.from(_contactMap.keys)..sort()) : [];
 
   ContactStore(StorageAdapter storage) : _storage = storage;
 
@@ -117,12 +123,18 @@ class ContactStore extends ChangeNotifier {
     if (raw == null) return 'fail';
 
     try {
-      final payload = EncryptedPayload.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      final payload = EncryptedPayload.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
       final salt = base64Decode(payload.salt);
       final iv = base64Decode(payload.iv);
       final encryptedData = base64Decode(payload.encryptedData);
 
-      final derivedKey = await HajimiSecurity.deriveKey(pass, salt, payload.iterations);
+      final derivedKey = await HajimiSecurity.deriveKey(
+        pass,
+        salt,
+        payload.iterations,
+      );
       final aesGcm = AesGcm.with256bits();
       final secretKey = SecretKey(derivedKey);
 
@@ -137,12 +149,16 @@ class ContactStore extends ChangeNotifier {
       final obj = jsonDecode(utf8.decode(plaintext)) as Map<String, dynamic>;
       _contactMap.clear();
       for (final entry in obj.entries) {
-        _contactMap[entry.key] = SecureChatService.hexToUint8Array(entry.value as String);
+        _contactMap[entry.key] = SecureChatService.hexToUint8Array(
+          entry.value as String,
+        );
       }
 
       _password = pass;
       _unlocked = true;
-      _currentContact = _contactMap.keys.isNotEmpty ? _contactMap.keys.first : '';
+      _currentContact = _contactMap.keys.isNotEmpty
+          ? _contactMap.keys.first
+          : '';
       notifyListeners();
       return 'success';
     } catch (_) {
@@ -226,7 +242,11 @@ class ContactStore extends ChangeNotifier {
     final iv = HajimiSecurity.randomBytes(12);
     const iterations = 100000;
 
-    final derivedKey = await HajimiSecurity.deriveKey(_password, salt, iterations);
+    final derivedKey = await HajimiSecurity.deriveKey(
+      _password,
+      salt,
+      iterations,
+    );
     final aesGcm = AesGcm.with256bits();
     final secretKey = SecretKey(derivedKey);
 
@@ -235,7 +255,11 @@ class ContactStore extends ChangeNotifier {
         e.key: SecureChatService.uint8ArrayToHex(e.value),
     };
     final plaintext = utf8.encode(jsonEncode(obj));
-    final box = await aesGcm.encrypt(plaintext, secretKey: secretKey, nonce: iv);
+    final box = await aesGcm.encrypt(
+      plaintext,
+      secretKey: secretKey,
+      nonce: iv,
+    );
 
     // 存储格式：ciphertext + tag（16字节）拼接后 base64
     final combined = Uint8List.fromList(box.cipherText + box.mac.bytes);

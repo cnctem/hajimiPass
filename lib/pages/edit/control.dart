@@ -66,8 +66,10 @@ class EditController extends ChangeNotifier {
     account.name = nameController.text;
     // 同步Item的值
     for (var i = 0; i < itemControllers.length; i++) {
-      account.accountItemList[i].itemName = itemControllers[i].nameController.text;
-      account.accountItemList[i].itemValue = itemControllers[i].valueController.text;
+      account.accountItemList[i].itemName =
+          itemControllers[i].nameController.text;
+      account.accountItemList[i].itemValue =
+          itemControllers[i].valueController.text;
     }
     account.lastEditTime = DateTime.now().millisecondsSinceEpoch;
   }
@@ -75,10 +77,10 @@ class EditController extends ChangeNotifier {
   // 保存逻辑
   Future<void> save() async {
     updateFromControllers();
-    
+
     // 调用持久化存储保存
     await HajimiStorage.instance.save();
-    
+
     debugPrint('Saved Account: ${account.toJson()}');
     notifyListeners();
   }

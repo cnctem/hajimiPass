@@ -8,9 +8,7 @@ import 'dart:math';
 /// Create Time 2025/7/18_21:37
 
 // 常量映射
-const Map<String, String> _haJimiConstants = {
-  '哈': '哈气！',
-};
+const Map<String, String> _haJimiConstants = {'哈': '哈气！'};
 
 int _seededHash(String seed) {
   int hash = 0;
@@ -61,7 +59,9 @@ String _encode(String str, String haJimiWords) {
 
     final enc1 = byte1 >> 2;
     final enc2 = ((byte1 & 0x03) << 4) | (byte2 == null ? 0 : byte2 >> 4);
-    final enc3 = byte2 == null ? 64 : ((byte2 & 0x0F) << 2) | (byte3 == null ? 0 : byte3 >> 6);
+    final enc3 = byte2 == null
+        ? 64
+        : ((byte2 & 0x0F) << 2) | (byte3 == null ? 0 : byte3 >> 6);
     final enc4 = byte3 == null ? 64 : byte3 & 0x3F;
 
     buffer
@@ -104,8 +104,15 @@ String _decode(String base64Str, String haJimiWords) {
 }
 
 const List<String> _decorations = [
-  '哈基米', '窝那没撸多', '阿西噶压', '库路曼波',
-  '奈诺娜美嘎', '哦吗吉利', '南北绿豆', '欧莫季里', '椰奶龙',
+  '哈基米',
+  '窝那没撸多',
+  '阿西噶压',
+  '库路曼波',
+  '奈诺娜美嘎',
+  '哦吗吉利',
+  '南北绿豆',
+  '欧莫季里',
+  '椰奶龙',
 ];
 
 const List<String> _punctuationSet = ['，', '；', '？', '。'];
@@ -152,7 +159,9 @@ String _encodeHaJimi(String text) {
 String _decodeHaJimi(String encodedText) {
   final decoRegexStr = _decorations.map(RegExp.escape).join('|');
   final punctRegexStr = _punctuationSet.join('');
-  final regex = RegExp('($decoRegexStr)(.{1,10})($decoRegexStr)([$punctRegexStr])');
+  final regex = RegExp(
+    '($decoRegexStr)(.{1,10})($decoRegexStr)([$punctRegexStr])',
+  );
 
   return regex.allMatches(encodedText).map((m) => m.group(2)!).join('');
 }
