@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('哈基密码本'),
+        title: const Text('  哈基密码本'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -52,6 +52,7 @@ class _HomePageState extends State<HomePage> {
             return const Center(child: Text('暂无账号，请点击右上角 + 添加'));
           }
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             itemCount: _controller.accounts.length,
             itemBuilder: (context, index) {
               final account = _controller.accounts[index];

@@ -97,6 +97,7 @@ class _SearchPageState extends State<SearchPage> {
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             itemCount: _controller.accounts.length,
             itemBuilder: (context, index) {
               final account = _controller.accounts[index];
