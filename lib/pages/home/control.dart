@@ -21,11 +21,13 @@ class HomeController extends ChangeNotifier {
 
   void _loadAccounts() {
     // 获取所有账号
-    final list = List<Account>.from(HajimiStorage.instance.accountList.accountList);
-    
+    final list = List<Account>.from(
+      HajimiStorage.instance.accountList.accountList,
+    );
+
     // 根据名称排序
     list.sort((a, b) => a.name.compareTo(b.name));
-    
+
     _accounts = list;
     notifyListeners();
   }

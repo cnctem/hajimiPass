@@ -16,15 +16,15 @@ class CreatePage extends StatelessWidget {
     // 正确的做法是：
     // 1. CreatePage 本身是一个 StatefulWidget，维护 CreateController 的生命周期
     // 2. 或者 EditPage 能够识别并处理，但 EditPage 已经是 StatefulWidget。
-    // 
+    //
     // 鉴于 EditPage 已经是一个通用的编辑器，CreatePage 最简单的实现就是直接返回一个配置好的 EditPage。
     // 为了管理 CreateController 的生命周期，我们可以在 EditPage 的 initState 中处理 controller 的创建逻辑，
     // 或者我们在这里创建一个 StatefulWrapper。
-    // 
+    //
     // 不过，为了符合 EditPage 的设计 (接受 controller)，我们可以这样做：
     // 如果 EditPage 负责 dispose 传入的 controller (这通常是不推荐的，但在这种紧密耦合的场景下可能方便)，
     // 或者我们让 EditPage 根据某种标志来创建 CreateController。
-    // 
+    //
     // 最好的方式：CreatePage 只是一个壳，它通过路由参数或者直接构建 EditPage。
     // 这里我们使用 StatefulWidget 来持有 controller。
 
@@ -56,9 +56,6 @@ class _CreatePageWrapperState extends State<CreatePageWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return EditPage(
-      controller: _controller,
-      title: '添加账号',
-    );
+    return EditPage(controller: _controller, title: '添加账号');
   }
 }

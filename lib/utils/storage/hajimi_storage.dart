@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hajimipass/utils/models.dart';
-import 'package:hajimipass/utils/hajimi/contact_store.dart' show StorageAdapter, HajimiSecurity, EncryptedPayload;
+import 'package:hajimipass/utils/hajimi/contact_store.dart'
+    show StorageAdapter, HajimiSecurity, EncryptedPayload;
 import 'package:path_provider/path_provider.dart';
 
 // 定义 StorageAdapter，以防 contact_store.dart 不导出
@@ -20,11 +21,11 @@ class HajimiStorage extends ChangeNotifier {
   AccountList? _accountList;
   StorageAdapter? _storageAdapter;
   final String _storageKey = 'account_list_data';
-  
+
   // 密码相关
   bool _unlocked = false;
   String _password = '';
-  
+
   bool get unlocked => _unlocked;
 
   // 初始化 StorageAdapter，外部需要在应用启动时调用
@@ -48,11 +49,13 @@ class HajimiStorage extends ChangeNotifier {
       return FileStorageAdapter(directory.path);
     } catch (e) {
       // 如果获取失败（例如在非移动平台且未配置），退回到内存存储或抛出异常
-      debugPrint('Warning: Could not get application documents directory. Using InMemoryStorage. Error: $e');
+      debugPrint(
+        'Warning: Could not get application documents directory. Using InMemoryStorage. Error: $e',
+      );
       return InMemoryStorage();
     }
   }
-  
+
   // 尝试加载数据，如果是明文则直接加载，如果是密文则保持锁定状态
   Future<void> _tryLoad() async {
     if (_storageAdapter == null) return;
@@ -66,14 +69,15 @@ class HajimiStorage extends ChangeNotifier {
       // 用户要求"加密持久化"，说明必须加密。
       // 如果没有密码，我们可能需要默认密码或者强制用户设置。
       // 这里先保持未加密状态，等待 setPassword
-      _unlocked = true; 
+      _unlocked = true;
     } else {
       try {
         // 尝试解析为 EncryptedPayload
         try {
           final jsonMap = jsonDecode(raw);
           // 检查是否符合 EncryptedPayload 结构
-          if (jsonMap.containsKey('encryptedData') && jsonMap.containsKey('iv')) {
+          if (jsonMap.containsKey('encryptedData') &&
+              jsonMap.containsKey('iv')) {
             // 是加密数据，需要 auth
             _unlocked = false;
             debugPrint('Data is encrypted. Waiting for auth.');
@@ -119,20 +123,26 @@ class HajimiStorage extends ChangeNotifier {
     }
     return _accountList!;
   }
-  
+
   // 认证/解锁
   Future<bool> auth(String password) async {
     if (_storageAdapter == null) return false;
     final raw = _storageAdapter!.getString(_storageKey);
     if (raw == null) return false;
-    
+
     try {
-      final payload = EncryptedPayload.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      final payload = EncryptedPayload.fromJson(
+        jsonDecode(raw) as Map<String, dynamic>,
+      );
       final salt = base64Decode(payload.salt);
       final iv = base64Decode(payload.iv);
       final encryptedData = base64Decode(payload.encryptedData);
 
-      final derivedKey = await HajimiSecurity.deriveKey(password, salt, payload.iterations);
+      final derivedKey = await HajimiSecurity.deriveKey(
+        password,
+        salt,
+        payload.iterations,
+      );
       final aesGcm = AesGcm.with256bits();
       final secretKey = SecretKey(derivedKey);
 
@@ -142,10 +152,10 @@ class HajimiStorage extends ChangeNotifier {
         SecretBox(ct, nonce: iv, mac: Mac(tag)),
         secretKey: secretKey,
       );
-      
+
       final jsonString = utf8.decode(plaintext);
       _accountList = AccountList.fromJson(jsonDecode(jsonString));
-      
+
       _password = password;
       _unlocked = true;
       notifyListeners();
@@ -155,7 +165,7 @@ class HajimiStorage extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // 设置密码并加密保存
   Future<void> setPassword(String password) async {
     _password = password;
@@ -165,10 +175,10 @@ class HajimiStorage extends ChangeNotifier {
 
   Future<void> save() async {
     if (_accountList == null || _storageAdapter == null) return;
-    
+
     // 更新最后编辑时间
     _accountList!.lastEditTime = DateTime.now().millisecondsSinceEpoch;
-    
+
     if (_password.isNotEmpty) {
       // 加密保存
       try {
@@ -176,12 +186,20 @@ class HajimiStorage extends ChangeNotifier {
         final iv = HajimiSecurity.randomBytes(12);
         const iterations = 100000;
 
-        final derivedKey = await HajimiSecurity.deriveKey(_password, salt, iterations);
+        final derivedKey = await HajimiSecurity.deriveKey(
+          _password,
+          salt,
+          iterations,
+        );
         final aesGcm = AesGcm.with256bits();
         final secretKey = SecretKey(derivedKey);
 
         final plaintext = utf8.encode(jsonEncode(_accountList!.toJson()));
-        final box = await aesGcm.encrypt(plaintext, secretKey: secretKey, nonce: iv);
+        final box = await aesGcm.encrypt(
+          plaintext,
+          secretKey: secretKey,
+          nonce: iv,
+        );
 
         final combined = Uint8List.fromList(box.cipherText + box.mac.bytes);
 
@@ -213,10 +231,10 @@ class HajimiStorage extends ChangeNotifier {
   void addAccount(Account account) {
     // 必须解锁才能操作
     if (!_unlocked && _password.isNotEmpty) return;
-    
+
     // 确保 accountList 已初始化
     if (_accountList == null) _createNewList();
-    
+
     accountList.accountList.add(account);
     save();
   }
@@ -226,7 +244,7 @@ class HajimiStorage extends ChangeNotifier {
     accountList.accountList.remove(account);
     save();
   }
-  
+
   void updateAccount(Account account) {
     save();
   }

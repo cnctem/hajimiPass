@@ -57,7 +57,9 @@ class _SearchPageState extends State<SearchPage> {
               return TextButton.icon(
                 onPressed: _controller.toggleSearchMode,
                 icon: Icon(
-                  _controller.searchNameOnly ? Icons.title : Icons.manage_search,
+                  _controller.searchNameOnly
+                      ? Icons.title
+                      : Icons.manage_search,
                   size: 22,
                 ),
                 label: Text(_controller.searchNameOnly ? '只搜名称' : '全文搜索'),
@@ -87,15 +89,11 @@ class _SearchPageState extends State<SearchPage> {
         listenable: _controller,
         builder: (context, child) {
           if (_textController.text.isEmpty) {
-            return const Center(
-              child: Text('输入关键词开始搜索'),
-            );
+            return const Center(child: Text('输入关键词开始搜索'));
           }
-          
+
           if (_controller.accounts.isEmpty) {
-            return const Center(
-              child: Text('未找到相关账号'),
-            );
+            return const Center(child: Text('未找到相关账号'));
           }
 
           return ListView.builder(
@@ -108,9 +106,13 @@ class _SearchPageState extends State<SearchPage> {
 
               return ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer,
                   child: Text(
-                    account.name.isNotEmpty ? account.name.substring(0, 1).toUpperCase() : '?',
+                    account.name.isNotEmpty
+                        ? account.name.substring(0, 1).toUpperCase()
+                        : '?',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,

@@ -91,7 +91,10 @@ class SecureChatService {
   /// 计算共享密钥（X25519 ECDH）
   Future<Uint8List> computeSharedKey(Uint8List peerPublicKeyBytes) async {
     _assertReady();
-    final peerPub = SimplePublicKey(peerPublicKeyBytes, type: KeyPairType.x25519);
+    final peerPub = SimplePublicKey(
+      peerPublicKeyBytes,
+      type: KeyPairType.x25519,
+    );
     final sharedSecret = await _x25519Algo.sharedSecretKey(
       keyPair: _x25519!,
       remotePublicKey: peerPub,
@@ -163,7 +166,10 @@ class SecureChatService {
     Uint8List signature,
     Uint8List ed25519PublicKeyBytes,
   ) {
-    final pub = SimplePublicKey(ed25519PublicKeyBytes, type: KeyPairType.ed25519);
+    final pub = SimplePublicKey(
+      ed25519PublicKeyBytes,
+      type: KeyPairType.ed25519,
+    );
     final sig = Signature(signature, publicKey: pub);
     return _ed25519Algo.verify(dhPublicKey, signature: sig);
   }
@@ -173,7 +179,9 @@ class SecureChatService {
     Object message,
     Uint8List sharedKey,
   ) {
-    final bytes = message is String ? utf8.encode(message) : message as List<int>;
+    final bytes = message is String
+        ? utf8.encode(message)
+        : message as List<int>;
     return _encryptAEADWithKey(null, sharedKey, rawBytes: bytes);
   }
 
@@ -213,10 +221,17 @@ class SecureChatService {
     final plaintext = rawBytes ?? utf8.encode(message!);
     final nonce = _randomBytes(12);
     final key = SecretKey(sharedKey);
-    final box = await _chacha20Aead.encrypt(plaintext, secretKey: key, nonce: nonce);
+    final box = await _chacha20Aead.encrypt(
+      plaintext,
+      secretKey: key,
+      nonce: nonce,
+    );
     // ciphertext + 16-byte Poly1305 MAC
     final combined = Uint8List.fromList(box.cipherText + box.mac.bytes);
-    return EncryptedMessage(nonce: Uint8List.fromList(nonce), ciphertext: combined);
+    return EncryptedMessage(
+      nonce: Uint8List.fromList(nonce),
+      ciphertext: combined,
+    );
   }
 
   static Future<String> _decryptAEADWithKey(
@@ -240,7 +255,11 @@ class SecureChatService {
     final plaintext = utf8.encode(message);
     final nonce = _randomBytes(8);
     final key = SecretKey(sharedKey);
-    final box = await _chacha20Raw.encrypt(plaintext, secretKey: key, nonce: nonce);
+    final box = await _chacha20Raw.encrypt(
+      plaintext,
+      secretKey: key,
+      nonce: nonce,
+    );
     return EncryptedMessage(
       nonce: Uint8List.fromList(nonce),
       ciphertext: Uint8List.fromList(box.cipherText),

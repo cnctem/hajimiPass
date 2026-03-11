@@ -23,11 +23,11 @@ class CreateController extends EditController {
   Future<void> save() async {
     // 1. 更新 Account 对象的数据
     updateFromControllers();
-    
+
     // 2. 将新创建的 Account 添加到全局列表并保存
     // addAccount 内部会调用 save() 持久化
     HajimiStorage.instance.addAccount(account);
-    
+
     print('Created new Account: ${account.toJson()}');
     notifyListeners();
   }
