@@ -13,7 +13,7 @@ abstract final class Pref {
   static int get schemeVariant =>
       GStorage.setting.get(SettingBoxKey.schemeVariant, defaultValue: 0);
   static bool get dynamicColor =>
-      GStorage.setting.get(SettingBoxKey.dynamicColor, defaultValue: true);
+      GStorage.setting.get(SettingBoxKey.dynamicColor, defaultValue: false);
   static double get defaultTextScale =>
       GStorage.setting.get(SettingBoxKey.defaultTextScale, defaultValue: 1.0);
   static int get customColor =>
