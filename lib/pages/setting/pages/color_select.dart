@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hajimipass/controllers/theme_controller.dart';
 import 'package:hajimipass/models/theme_types.dart';
-import 'package:hajimipass/pages/setting/widgets/select_dialog.dart';
 import 'package:hajimipass/pages/setting/widgets/color_palette.dart';
 import 'dart:io' show Platform;
 
@@ -20,10 +19,6 @@ class _ColorSelectPageState extends State<ColorSelectPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    TextStyle titleStyle = theme.textTheme.titleMedium!;
-    TextStyle subTitleStyle = theme.textTheme.labelMedium!.copyWith(
-      color: theme.colorScheme.outline,
-    );
     final padding = MediaQuery.viewPaddingOf(
       context,
     ).copyWith(top: 0, bottom: 0);
@@ -34,33 +29,6 @@ class _ColorSelectPageState extends State<ColorSelectPage> {
         final schemeVariant = FlexSchemeVariant.values[ctr.schemeVariant.value];
         return ListView(
           children: [
-            ListTile(
-              onTap: () async {
-                final result = await showDialog<ThemeType>(
-                  context: context,
-                  builder: (context) {
-                    return SelectDialog<ThemeType>(
-                      title: '主题模式',
-                      value: ctr.themeType.value,
-                      values: ThemeType.values.map((e) => (e, e.desc)).toList(),
-                    );
-                  },
-                );
-                if (result != null) {
-                  ctr.themeType.value = result;
-                }
-              },
-              leading: Container(
-                width: 40,
-                alignment: Alignment.center,
-                child: const Icon(Icons.flashlight_on_outlined),
-              ),
-              title: Text('主题模式', style: titleStyle),
-              subtitle: Text(
-                '当前模式：${ctr.themeType.value.desc}',
-                style: subTitleStyle,
-              ),
-            ),
             ListTile(
               enabled: !ctr.dynamicColor.value,
               title: Row(
@@ -119,7 +87,7 @@ class _ColorSelectPageState extends State<ColorSelectPage> {
                 style: const TextStyle(fontSize: 12),
               ),
             ),
-            if (!Platform.isIOS)
+            if (!Platform.isIOS && ctr.dynamicColor.value)
               CheckboxListTile(
                 title: const Text('动态取色'),
                 controlAffinity: ListTileControlAffinity.leading,
