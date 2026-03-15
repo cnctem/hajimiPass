@@ -42,7 +42,6 @@ dependencies:
   get: ^4.7.3
   flex_seed_scheme: ^3.6.1
   dynamic_color: ^1.8.1
-  hive_flutter: ^1.1.0
   path: ^1.9.1
 
 dev_dependencies:
