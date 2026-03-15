@@ -4,7 +4,7 @@ class NormalItem extends StatefulWidget {
   final String? title;
   final ValueGetter<String>? getTitle;
   final String? subtitle;
-  final ValueGetter<String>? getSubtitle;
+  final ValueGetter<String?>? getSubtitle;
   final Widget? leading;
   final ValueGetter<Widget?>? getTrailing;
   final void Function(BuildContext context, void Function() setState)? onTap;
@@ -32,6 +32,7 @@ class _NormalItemState extends State<NormalItem> {
   @override
   Widget build(BuildContext context) {
     late final theme = Theme.of(context);
+    final subtitleText = widget.subtitle ?? widget.getSubtitle?.call();
     return ListTile(
       contentPadding: widget.contentPadding,
       onTap: widget.onTap == null
@@ -41,9 +42,9 @@ class _NormalItemState extends State<NormalItem> {
         widget.title ?? widget.getTitle!(),
         style: widget.titleStyle ?? theme.textTheme.titleMedium!,
       ),
-      subtitle: widget.subtitle != null || widget.getSubtitle != null
+      subtitle: subtitleText != null
           ? Text(
-              widget.subtitle ?? widget.getSubtitle!(),
+              subtitleText,
               style: theme.textTheme.labelMedium!.copyWith(
                 color: theme.colorScheme.outline,
               ),

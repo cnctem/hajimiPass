@@ -5,4 +5,5 @@ abstract final class SettingBoxKey {
   static const String dynamicColor = 'dynamicColor';
   static const String defaultTextScale = 'defaultTextScale';
   static const String customColor = 'customColor';
+  static const String passwordHint = 'passwordHint';
 }

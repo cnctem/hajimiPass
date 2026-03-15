@@ -26,7 +26,7 @@ class NormalModel extends SettingsModel {
   @override
   final String? title;
   final ValueGetter<String>? getTitle;
-  final ValueGetter<String>? getSubtitle;
+  final ValueGetter<String?>? getSubtitle;
   final Widget Function()? getTrailing;
   final void Function(BuildContext context, void Function() setState)? onTap;
 

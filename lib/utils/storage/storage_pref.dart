@@ -18,4 +18,8 @@ abstract final class Pref {
       GStorage.setting.get(SettingBoxKey.defaultTextScale, defaultValue: 1.0);
   static int get customColor =>
       GStorage.setting.get(SettingBoxKey.customColor, defaultValue: 0);
+  static String get passwordHint =>
+      GStorage.setting.get(SettingBoxKey.passwordHint, defaultValue: '');
+  static set passwordHint(String value) =>
+      GStorage.setting.put(SettingBoxKey.passwordHint, value);
 }

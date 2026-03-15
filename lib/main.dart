@@ -7,12 +7,15 @@ import 'package:hajimipass/controllers/theme_controller.dart';
 import 'package:hajimipass/models/theme_types.dart';
 import 'package:hajimipass/pages/creat/view.dart';
 import 'package:hajimipass/pages/home/view.dart';
+import 'package:hajimipass/pages/login/view.dart';
 import 'package:hajimipass/pages/search/view.dart';
 import 'package:hajimipass/pages/setting/pages/color_select.dart';
 import 'package:hajimipass/pages/setting/pages/font_size_select.dart';
+import 'package:hajimipass/pages/setting/pages/key_init.dart';
 import 'package:hajimipass/pages/setting/view.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
+import 'package:hajimipass/utils/storage/storage_pref.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,16 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  String _getInitialRoute() {
+    if (Pref.passwordHint.isEmpty) {
+      return '/keyInit';
+    }
+    if (!HajimiStorage.instance.unlocked) {
+      return '/login';
+    }
+    return '/';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,9 +103,10 @@ class MyApp extends StatelessWidget {
               );
               return FlutterSmartDialog.init()(context, newChild);
             },
-            initialRoute: '/',
+            initialRoute: _getInitialRoute(),
             getPages: [
               GetPage(name: '/', page: () => const HomePage()),
+              GetPage(name: '/login', page: () => const LoginPage()),
               GetPage(name: '/creat', page: () => const CreatePage()),
               GetPage(name: '/search', page: () => const SearchPage()),
               GetPage(name: '/setting', page: () => const SettingPage()),
@@ -104,6 +118,7 @@ class MyApp extends StatelessWidget {
                 name: '/fontSizeSetting',
                 page: () => const FontSizeSelectPage(),
               ),
+              GetPage(name: '/keyInit', page: () => const KeyInitPage()),
             ],
           );
         });

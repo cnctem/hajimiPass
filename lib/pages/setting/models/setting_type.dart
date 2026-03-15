@@ -1,4 +1,5 @@
 enum SettingType {
+  securitySettings('安全设置'),
   styleSetting('外观设置'),
   extraSetting('其它设置'),
   backupSetting('备份设置'),
