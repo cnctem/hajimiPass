@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hajimipass/pages/setting/models/setting_type.dart';
+import 'package:hajimipass/pages/setting/security_setting.dart';
 import 'package:hajimipass/pages/setting/style_setting.dart';
 
 class SettingPage extends StatelessWidget {
@@ -18,6 +19,9 @@ class SettingPage extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               switch (type) {
+                case SettingType.securitySettings:
+                  Get.to(() => const SecuritySetting());
+                  break;
                 case SettingType.styleSetting:
                   Get.to(() => const StyleSetting());
                   break;
