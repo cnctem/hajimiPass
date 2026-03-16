@@ -170,7 +170,7 @@ devtools_options.yaml
 # FVM Version Cache
 .fvm/
 
-pili_release.json
+jimi_release.json
 
 dist
 

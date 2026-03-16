@@ -1,0 +1,84 @@
+name: Build for ohos
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "tag"
+        required: false
+        default: ""
+        type: string
+  workflow_dispatch:
+
+jobs:
+  build-ohos-hap:
+    name: Release ohos
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract tag name
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Echo build progress
+        run: echo "hajimiPass_ohos_${{ env.tag }}_unsigned.hap build progress"
+        shell: bash
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl xz-utils zip libglu1-mesa
+        shell: bash
+
+      - name: Setup HarmonyOS toolchain
+        uses: ErBWs/setup-ohos@v1
+        with:
+          version: latest
+          cache: true
+
+      - name: Setup JDK17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup flutter-ohos
+        run: |
+          git clone -b 3.35.8-ohos-0.0.2 https://gitcode.com/openharmony-tpc/flutter_flutter.git $GITHUB_WORKSPACE/flutter
+          echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: 1
+
+      - name: Set and Extract version
+        shell: pwsh
+        run: lib/scripts/build.ps1
+
+      - name: Add ohos platform
+        run: flutter create --platforms ohos .
+        shell: bash
+
+      - name: Build Flutter for ohos
+        run: flutter build hap --release --dart-define-from-file=jimi_release.json
+        shell: bash
+        continue-on-error: true
+
+      - name: Package ohos build output
+        run: cp ./ohos/entry/build/default/outputs/default/entry-default-unsigned.hap hajimiPass_ohos_${{ env.tag }}_unsigned.hap
+        shell: bash
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ env.tag }}
+          draft: true
+          files: hajimiPass_ohos_*.hap

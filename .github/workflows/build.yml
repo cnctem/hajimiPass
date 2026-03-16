@@ -1,0 +1,175 @@
+name: Build
+
+on:
+    push:
+        tags:
+            - '*'
+    pull_request:
+        types:
+            - opened
+            - synchronize
+            - reopened
+            - ready_for_review
+        paths-ignore:
+            - "**.md"
+    workflow_dispatch:
+        inputs:
+            build_android:
+                description: "Build Android"
+                required: false
+                default: true
+                type: boolean
+
+            build_ios:
+                description: "Build iOS"
+                required: false
+                default: true
+                type: boolean
+
+            build_mac:
+                description: "Build Mac"
+                required: false
+                default: true
+                type: boolean
+
+            build_ohos:
+                description: "Build ohos"
+                required: false
+                default: true
+                type: boolean
+
+            build_win_x64:
+                description: "Build Win-x64"
+                required: false
+                default: true
+                type: boolean
+
+            build_linux_x64:
+                description: "Build Linux-x64"
+                required: false
+                default: true
+                type: boolean
+
+            tag:
+                description: "tag"
+                required: false
+                default: ""
+                type: string
+
+jobs:
+    android:
+        if: ${{ github.event_name == 'pull_request' || github.event.inputs.build_android == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        name: Release Android
+        runs-on: ubuntu-latest
+        permissions: write-all
+
+        steps:
+            - name: 代码迁出
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - name: 构建Java环境
+              uses: actions/setup-java@v5
+              with:
+                  distribution: "zulu"
+                  java-version: "17"
+                  cache: "gradle"
+                  cache-dependency-path: |
+                      android/*.gradle*
+                      android/**/gradle-wrapper.properties
+
+            - name: Setup flutter-ohos
+              run: |
+                git clone -b 3.35.8-ohos-0.0.2 https://gitcode.com/openharmony-tpc/flutter_flutter.git $GITHUB_WORKSPACE/flutter
+                echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
+
+            - name: Apply Patch
+              shell: pwsh
+              run: lib/scripts/patch.ps1 android
+              continue-on-error: true
+
+            - name: Write key
+              if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') ) }}
+              run: |
+                  if [ ! -z "${{ secrets.KEYSTORE_FILE }}" ]; then
+                    echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > android/app/key.jks
+                    echo storeFile='key.jks' >> android/key.properties
+                    echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> android/key.properties
+                    echo keyAlias='${{ secrets.KEY_ALIAS }}' >> android/key.properties
+                    echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> android/key.properties
+                  fi
+
+            - name: Set and Extract version
+              if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') ) }}
+              shell: pwsh
+              run: lib/scripts/build.ps1 android
+
+            - name: Flutter Build Release Apk
+              if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') ) }}
+              run: flutter build apk --release --target-platform android-arm64 --dart-define-from-file=jimi_release.json --pub
+
+            - name: Flutter Build Dev Apk
+              if: ${{ github.event_name == 'pull_request' }}
+              run: |
+                flutter build apk --release --target-platform android-arm64 --android-project-arg dev=1 --pub
+
+            - name: Rename
+              run: |
+                  tag_name=${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}
+                  mv build/app/outputs/flutter-apk/app-release.apk "hajimiPass_android_${tag_name}.apk"
+              shell: bash
+
+            - name: Release
+              if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' && !contains(github.event.inputs.tag, 'test')) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && !contains(github.ref_name, 'test')) }}
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}
+                  name: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}
+                  draft: true
+                  prerelease: true
+                  files: |
+                      hajimiPass_android_*.apk
+
+            - name: 上传
+              uses: actions/upload-artifact@v7
+              with:
+                  archive: false
+                  name: Android_arm64-v8a
+                  path: |
+                      hajimiPass_android_*.apk
+
+    ios:
+        if: ${{ github.event_name == 'pull_request' || github.event.inputs.build_ios == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        uses: ./.github/workflows/ios.yml
+        permissions: write-all
+        with:
+            tag: ${{ github.event_name == 'push' && github.ref_name || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '') }}
+
+    mac:
+        if: ${{ github.event_name == 'pull_request' || github.event.inputs.build_mac == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        uses: ./.github/workflows/mac.yml
+        permissions: write-all
+        with:
+            tag: ${{ github.event_name == 'push' && github.ref_name || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '') }}
+
+    ohos:
+        if: ${{ github.event_name == 'pull_request' || github.event.inputs.build_ohos == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        uses: ./.github/workflows/ohos.yml
+        permissions: write-all
+        with:
+            tag: ${{ github.event_name == 'push' && github.ref_name || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '') }}
+
+    win_x64:
+        if: ${{ github.event_name == 'pull_request' || github.event.inputs.build_win_x64 == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+        uses: ./.github/workflows/win_x64.yml
+        permissions: write-all
+        with:
+            tag: ${{ github.event_name == 'push' && github.ref_name || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '') }}
+
+    linux_x64:
+        if: ${{ github.event.inputs.build_linux_x64 == 'true' }}
+        uses: ./.github/workflows/linux_x64.yml
+        permissions: write-all
+        with:
+            tag: ${{ github.event_name == 'push' && github.ref_name || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '') }}
