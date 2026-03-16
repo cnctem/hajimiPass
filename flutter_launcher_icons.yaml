@@ -1,0 +1,14 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true    # 移除 iOS 图标的 alpha 通道
+  web:
+    generate: true
+  windows:
+    generate: true
+  macos:
+    generate: true
+  linux:
+    generate: true
+  image_path: "assets/app_icon.png"
+  min_sdk_android: 21
