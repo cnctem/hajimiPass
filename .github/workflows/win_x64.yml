@@ -1,0 +1,84 @@
+name: Build for Windows x64
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "tag"
+        required: false
+        default: ""
+        type: string
+  workflow_dispatch:
+
+jobs:
+  build-windows-app:
+    name: Release Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
+
+      - name: Apply Patch
+        shell: pwsh
+        run: lib/scripts/patch.ps1 windows
+        continue-on-error: true
+
+      - name: Add fastforge and Inno Setup
+        run: |
+          dart pub global activate fastforge
+          choco install innosetup
+
+      - name: Set and Extract version
+        shell: pwsh
+        run: lib/scripts/build.ps1
+
+      - name: Build Windows
+        run: |
+          fastforge package --platform windows --targets exe --flutter-build-args="dart-define-from-file=jimi_release.json"
+
+      - name: Prepare Upload
+        run: |
+          mkdir -p Release/hajimiPass-Win
+          mkdir -p hajimiPass-Win-Setup
+          mv build/windows/x64/runner/Release/* Release/hajimiPass-Win/
+          mv dist/**/*.exe hajimiPass-Win-Setup/hajimiPass_windows_${{ inputs.tag }}_x64_setup.exe
+
+      - name: Compress
+        if: ${{ github.event.inputs.tag != '' }}
+        run: |
+          Compress-Archive -Path "Release/hajimiPass-Win" -DestinationPath "hajimiPass_windows_${{env.version}}_x64_portable.zip"
+        shell: pwsh
+
+      - name: Release
+        if: ${{ inputs.tag != '' && !contains(inputs.tag, 'test') }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
+          draft: true
+          prerelease: true
+          files: |
+            hajimiPass_windows_*.zip
+            hajimiPass-Win-Setup/hajimiPass_windows_*.exe
+
+      - name: Upload windows file release
+        uses: actions/upload-artifact@v7
+        with:
+          archive: true
+          name: hajimiPass_windows_${{env.version}}_x64_portable
+          path: Release
+
+      - name: Upload windows setup release
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          name: Windows-setup-x64-release
+          path: hajimiPass-Win-Setup/hajimiPass_windows_*.exe

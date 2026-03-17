@@ -1,0 +1,58 @@
+name: Build for Linux x64
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "tag"
+        required: false
+        default: ""
+        type: string
+  workflow_dispatch:
+
+jobs:
+  build-linux-app:
+    name: Release Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake libgtk-3-dev ninja-build libayatana-appindicator3-dev unzip webkit2gtk-4.1 libasound2-dev patchelf
+        shell: bash
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
+
+      - name: Set and Extract version
+        shell: pwsh
+        run: lib/scripts/build.ps1
+
+      - name: Build Linux
+        run: flutter build linux --release -v --pub --dart-define-from-file=jimi_release.json
+
+      - name: Package .tar.gz
+        run: tar -zcvf hajimiPass_linux_${{ env.version }}_amd64.tar.gz -C build/linux/x64/release/bundle .
+
+      - name: Release
+        if: ${{ github.event.inputs.tag != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.event.inputs.tag }}
+          files: |
+            hajimiPass_linux_*.tar.gz
+
+      - name: Upload linux targz package
+        uses: actions/upload-artifact@v5
+        with:
+          name: Linux_targz_amd64_packege
+          path: hajimiPass_linux_*.tar.gz
