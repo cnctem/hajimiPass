@@ -37,7 +37,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   cryptography: ^2.7.0
   cryptography_flutter: ^2.3.2
-  path_provider: ^2.1.5
+  path_provider: # 应用可用路径.鸿蒙适配
+    git:
+      url: "https://gitcode.com/openharmony-tpc/flutter_packages.git"
+      path: "packages/path_provider/path_provider"
   flutter_smart_dialog: ^5.0.1
   get: ^4.7.3
   flex_seed_scheme: ^3.6.1
