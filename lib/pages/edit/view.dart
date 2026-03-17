@@ -75,7 +75,7 @@ class EditPageState extends State<EditPage> {
                     '账号名称',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context).primaryColor,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -93,7 +93,7 @@ class EditPageState extends State<EditPage> {
                         controller: itemCtrl.nameController,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                         decoration: const InputDecoration(
