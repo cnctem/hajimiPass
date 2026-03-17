@@ -84,6 +84,9 @@ jobs:
                 git clone -b 3.35.8-ohos-0.0.2 https://gitcode.com/openharmony-tpc/flutter_flutter.git $GITHUB_WORKSPACE/flutter
                 echo "$GITHUB_WORKSPACE/flutter/bin" >> $GITHUB_PATH
 
+            - name: Set HOS_SDK_HOME
+              run: echo "HOS_SDK_HOME=$GITHUB_WORKSPACE/ohos-sdk" >> $GITHUB_ENV
+
             - name: Apply Patch
               shell: pwsh
               run: lib/scripts/patch.ps1 android
@@ -168,7 +171,7 @@ jobs:
             tag: ${{ github.event_name == 'push' && github.ref_name || (github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '') }}
 
     linux_x64:
-        if: ${{ github.event.inputs.build_linux_x64 == 'true' }}
+        if: ${{ github.event.inputs.build_linux_x64 == 'true' || github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
         uses: ./.github/workflows/linux_x64.yml
         permissions: write-all
         with:
