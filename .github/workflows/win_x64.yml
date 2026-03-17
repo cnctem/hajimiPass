@@ -20,13 +20,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup flutter-ohos
-        run: |
-          git clone -b 3.35.8-ohos-0.0.2 https://gitcode.com/openharmony-tpc/flutter_flutter.git $env:GITHUB_WORKSPACE\flutter
-          echo "$env:GITHUB_WORKSPACE\flutter\bin" >> $env:GITHUB_PATH
-
-      - name: Set HOS_SDK_HOME
-        run: echo "HOS_SDK_HOME=$env:GITHUB_WORKSPACE\ohos-sdk" >> $env:GITHUB_ENV
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
 
       - name: Apply Patch
         shell: pwsh
@@ -35,7 +33,7 @@ jobs:
 
       - name: Add fastforge and Inno Setup
         run: |
-          $env:GITHUB_WORKSPACE\flutter\bin\dart.bat pub global activate fastforge
+          dart pub global activate fastforge
           choco install innosetup
 
       - name: Add Chinese language file for Inno Setup
