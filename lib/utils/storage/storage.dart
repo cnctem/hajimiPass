@@ -54,11 +54,17 @@ abstract final class GStorage {
   static late final JsonSettingStorage localCache;
 
   static Future<void> init() async {
-    final dir = await getApplicationDocumentsDirectory();
-
-    setting = JsonSettingStorage('${dir.path}/setting.json');
-    localCache = JsonSettingStorage('${dir.path}/localCache.json');
-
-    await Future.wait([setting.load(), localCache.load()]);
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      setting = JsonSettingStorage('${dir.path}/setting.json');
+      localCache = JsonSettingStorage('${dir.path}/localCache.json');
+      await Future.wait([setting.load(), localCache.load()]);
+    } catch (e) {
+      debugPrint('GStorage init error: $e. Using in-memory storage.');
+      // 使用临时目录作为 fallback
+      setting = JsonSettingStorage('/tmp/setting.json');
+      localCache = JsonSettingStorage('/tmp/localCache.json');
+      await Future.wait([setting.load(), localCache.load()]);
+    }
   }
 }

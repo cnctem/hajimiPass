@@ -19,7 +19,11 @@ import 'package:hajimipass/utils/storage/storage_pref.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Future.wait([HajimiStorage.instance.init(), GStorage.init()]);
+  try {
+    await Future.wait([HajimiStorage.instance.init(), GStorage.init()]);
+  } catch (e) {
+    debugPrint('Initialization error: $e');
+  }
   runApp(const MyApp());
 }
 
