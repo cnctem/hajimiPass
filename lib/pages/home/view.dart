@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hajimipass/pages/home/control.dart';
-import 'package:hajimipass/pages/edit/view.dart';
-import 'package:hajimipass/pages/edit/control.dart';
+import 'package:hajimipass/pages/detail/view.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -89,10 +88,7 @@ class _HomePageState extends State<HomePage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditPage(
-                        controller: EditController(initialAccount: account),
-                        title: '编辑账号',
-                      ),
+                      builder: (context) => DetailPage(account: account),
                     ),
                   );
                 },
