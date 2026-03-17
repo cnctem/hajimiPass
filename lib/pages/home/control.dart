@@ -3,13 +3,34 @@ import 'package:hajimipass/utils/models.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 
 class HomeController extends ChangeNotifier {
-  List<Account> _accounts = [];
+  List<Account> _allAccounts = [];
+  String _selectedTag = '全部';
 
-  List<Account> get accounts => _accounts;
+  List<Account> get accounts {
+    if (_selectedTag == '收藏') {
+      return _allAccounts.where((a) => a.favorite).toList();
+    }
+    if (_selectedTag == '全部') return _allAccounts;
+    return _allAccounts
+        .where((a) => a.tagList.any((t) => t.tagName == _selectedTag))
+        .toList();
+  }
+
+  List<String> get tags => [
+    '收藏',
+    '全部',
+    ...HajimiStorage.instance.accountList.tagList.map((t) => t.tagName),
+  ];
+
+  String get selectedTag => _selectedTag;
+
+  void selectTag(String tag) {
+    _selectedTag = tag;
+    notifyListeners();
+  }
 
   HomeController() {
     _loadAccounts();
-    // 监听数据变化，当HajimiStorage数据变化时重新加载
     HajimiStorage.instance.addListener(_loadAccounts);
   }
 
@@ -20,15 +41,11 @@ class HomeController extends ChangeNotifier {
   }
 
   void _loadAccounts() {
-    // 获取所有账号
     final list = List<Account>.from(
       HajimiStorage.instance.accountList.accountList,
     );
-
-    // 根据名称排序
     list.sort((a, b) => a.name.compareTo(b.name));
-
-    _accounts = list;
+    _allAccounts = list;
     notifyListeners();
   }
 }
