@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hajimipass/utils/models.dart';
 import 'package:hajimipass/pages/edit/view.dart';
 import 'package:hajimipass/pages/edit/control.dart';
@@ -83,49 +84,47 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
+  void _copy(BuildContext context, String label, String value) {
+    Clipboard.setData(ClipboardData(text: value));
+    SmartDialog.showToast("已复制 $label");
+  }
+
   Widget _buildItem({
     required BuildContext context,
     required String label,
     required String value,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
+    return InkWell(
+      onTap: () => _copy(context, label, value),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(value, style: const TextStyle(fontSize: 16)),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.copy, size: 16),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                tooltip: '复制',
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: value));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('已复制 $label'),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(value, style: const TextStyle(fontSize: 16)),
-          const Divider(),
-        ],
+                Icon(
+                  Icons.copy,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                ),
+              ],
+            ),
+            const Divider(),
+          ],
+        ),
       ),
     );
   }
