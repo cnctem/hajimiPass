@@ -59,9 +59,6 @@ abstract final class GStorage {
     setting = JsonSettingStorage('${dir.path}/setting.json');
     localCache = JsonSettingStorage('${dir.path}/localCache.json');
 
-    await Future.wait([
-      setting.load(),
-      localCache.load(),
-    ]);
+    await Future.wait([setting.load(), localCache.load()]);
   }
 }
