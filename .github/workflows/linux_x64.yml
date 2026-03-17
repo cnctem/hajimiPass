@@ -40,14 +40,16 @@ jobs:
         run: flutter build linux --release -v --pub --dart-define-from-file=jimi_release.json
 
       - name: Package .tar.gz
-        run: tar -zcvf hajimiPass_linux_${{ env.version }}_amd64.tar.gz -C build/linux/x64/release/bundle .
+        run: tar -zcvf hajimiPass_linux_${{ inputs.tag }}_amd64.tar.gz -C build/linux/x64/release/bundle .
 
       - name: Release
-        if: ${{ github.event.inputs.tag != '' }}
+        if: ${{ inputs.tag != '' && !contains(inputs.tag, 'test') }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag }}
-          name: ${{ github.event.inputs.tag }}
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
+          draft: true
+          prerelease: true
           files: |
             hajimiPass_linux_*.tar.gz
 
