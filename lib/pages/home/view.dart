@@ -47,7 +47,10 @@ class _HomePageState extends State<HomePage> {
                 height: 48,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   itemCount: _controller.tags.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
@@ -71,18 +74,23 @@ class _HomePageState extends State<HomePage> {
                         itemCount: _controller.accounts.length,
                         itemBuilder: (context, index) {
                           final account = _controller.accounts[index];
-                          final firstItemValue = account.accountItemList.isNotEmpty
+                          final firstItemValue =
+                              account.accountItemList.isNotEmpty
                               ? account.accountItemList.first.itemValue
                               : '';
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
                               child: Text(
                                 account.name.isNotEmpty
                                     ? account.name.substring(0, 1).toUpperCase()
                                     : '?',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -92,7 +100,9 @@ class _HomePageState extends State<HomePage> {
                               firstItemValue,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Theme.of(context).textTheme.bodySmall?.color,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.color,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -101,7 +111,8 @@ class _HomePageState extends State<HomePage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => DetailPage(account: account),
+                                  builder: (context) =>
+                                      DetailPage(account: account),
                                 ),
                               );
                             },
