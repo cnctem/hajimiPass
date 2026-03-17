@@ -42,11 +42,11 @@ jobs:
       - name: Prepare Upload
         run: |
           npm install --global create-dmg
-          create-dmg build/macos/Build/Products/Release/hajimiPass.app || true
+          create-dmg build/macos/Build/Products/Release/哈基密码本.app || true
         continue-on-error: true
 
       - name: Rename DMG
-        run: mv hajimiPass*.dmg hajimiPass_macos_${{ inputs.tag }}.dmg
+        run: mv 哈基密码本*.dmg hajimiPass_macos_${{ inputs.tag }}.dmg
 
       - name: Release
         if: ${{ inputs.tag != '' && !contains(inputs.tag, 'test') }}

@@ -39,8 +39,11 @@ jobs:
         run: |
           flutter build ios --release --no-codesign --dart-define-from-file=jimi_release.json
           ln -sf ./build/ios/iphoneos Payload
-          # make AltSign happy...
+          # Sign all frameworks and dylibs
           find Payload/Runner.app/Frameworks -type d -name "*.framework" -exec codesign --force --sign - --preserve-metadata=identifier,entitlements {} \;
+          find Payload/Runner.app/Frameworks -type f -name "*.dylib" -exec codesign --force --sign - {} \;
+          # Sign the app bundle
+          codesign --force --sign - --deep --preserve-metadata=identifier,entitlements Payload/Runner.app
           zip -r9 hajimiPass_ios_${{ inputs.tag }}.ipa Payload/Runner.app
 
       - name: Release
