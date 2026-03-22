@@ -19,11 +19,7 @@ enum ExportType {
   settingsClipboard,
 }
 
-enum ExportResult {
-  success,
-  cancelled,
-  error,
-}
+enum ExportResult { success, cancelled, error }
 
 class ExportResultData {
   final ExportResult result;
@@ -63,9 +59,9 @@ class ExportService {
 
       switch (type) {
         case ExportType.accountPlaintextJson:
-          content = const JsonEncoder.withIndent('  ').convert(
-            accountList.toJson(),
-          );
+          content = const JsonEncoder.withIndent(
+            '  ',
+          ).convert(accountList.toJson());
           fileName = _generateFileName('accounts', 'json');
           mimeType = 'application/json';
           break;
@@ -109,16 +105,14 @@ class ExportService {
     }
   }
 
-  Future<ExportResultData> exportSettings({
-    required ExportType type,
-  }) async {
+  Future<ExportResultData> exportSettings({required ExportType type}) async {
     try {
       switch (type) {
         case ExportType.settingsJson:
           final settingsData = await _getSettingsData();
-          final content = const JsonEncoder.withIndent('  ').convert(
-            settingsData,
-          );
+          final content = const JsonEncoder.withIndent(
+            '  ',
+          ).convert(settingsData);
           final fileName = _generateFileName('settings', 'json');
           return await _saveFile(
             content: content,
@@ -128,9 +122,9 @@ class ExportService {
 
         case ExportType.settingsClipboard:
           final settingsData = await _getSettingsData();
-          final content = const JsonEncoder.withIndent('  ').convert(
-            settingsData,
-          );
+          final content = const JsonEncoder.withIndent(
+            '  ',
+          ).convert(settingsData);
           await Clipboard.setData(ClipboardData(text: content));
           return const ExportResultData(result: ExportResult.success);
 
@@ -288,10 +282,7 @@ class ExportService {
       final file = File(savePath);
       await file.writeAsString(content);
 
-      return ExportResultData(
-        result: ExportResult.success,
-        filePath: savePath,
-      );
+      return ExportResultData(result: ExportResult.success, filePath: savePath);
     } catch (e) {
       debugPrint('Desktop save error: $e');
       return ExportResultData(
@@ -302,17 +293,14 @@ class ExportService {
   }
 
   Future<String?> _showSaveDialog(String defaultFileName) async {
-    final result = await Process.run(
-      'osascript',
-      [
-        '-e',
-        '''
+    final result = await Process.run('osascript', [
+      '-e',
+      '''
         set defaultName to "$defaultFileName"
         set theFile to choose file name default name defaultName
         return POSIX path of theFile
         ''',
-      ],
-    );
+    ]);
 
     if (result.exitCode == 0) {
       return (result.stdout as String).trim();

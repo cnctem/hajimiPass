@@ -74,10 +74,7 @@ void _showSettingsExportDialog(BuildContext context) {
         mainAxisSize: MainAxisSize.min,
         children: [
           const ListTile(
-            title: Text(
-              '导出设置项',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            title: Text('导出设置项', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           ListTile(
             leading: const Icon(Icons.code),
@@ -119,10 +116,7 @@ void _showEncryptPasswordDialog(BuildContext context) {
       content: TextField(
         controller: controller,
         obscureText: true,
-        decoration: const InputDecoration(
-          labelText: '密码',
-          hintText: '请输入加密密码',
-        ),
+        decoration: const InputDecoration(labelText: '密码', hintText: '请输入加密密码'),
       ),
       actions: [
         TextButton(
