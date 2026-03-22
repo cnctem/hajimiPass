@@ -3,23 +3,31 @@ import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:hajimipass/utils/storage/storage_key.dart';
 
 abstract final class Pref {
-  static ThemeType get themeType =>
-      ThemeType.values[GStorage.setting.get(
-        SettingBoxKey.themeMode,
-        defaultValue: 0,
-      )];
+  static final JsonSettingStorage _setting = GStorage.setting;
+
+  static int get _themeTypeInt => _setting.get(
+    SettingBoxKey.themeMode,
+    defaultValue: ThemeType.system.index,
+  );
+
+  static ThemeType get themeType => ThemeType.values[_themeTypeInt];
+
   static bool get isPureBlackTheme =>
-      GStorage.setting.get(SettingBoxKey.isPureBlackTheme, defaultValue: false);
+      _setting.get(SettingBoxKey.isPureBlackTheme, defaultValue: false);
   static int get schemeVariant =>
-      GStorage.setting.get(SettingBoxKey.schemeVariant, defaultValue: 10);
+      _setting.get(SettingBoxKey.schemeVariant, defaultValue: 10);
   static bool get dynamicColor =>
-      GStorage.setting.get(SettingBoxKey.dynamicColor, defaultValue: false);
+      _setting.get(SettingBoxKey.dynamicColor, defaultValue: false);
   static double get defaultTextScale =>
-      GStorage.setting.get(SettingBoxKey.defaultTextScale, defaultValue: 1.0);
+      _setting.get(SettingBoxKey.defaultTextScale, defaultValue: 1.0);
   static int get customColor =>
-      GStorage.setting.get(SettingBoxKey.customColor, defaultValue: 5);
+      _setting.get(SettingBoxKey.customColor, defaultValue: 5);
   static String get passwordHint =>
-      GStorage.setting.get(SettingBoxKey.passwordHint, defaultValue: '');
+      _setting.get(SettingBoxKey.passwordHint, defaultValue: '');
   static set passwordHint(String value) =>
-      GStorage.setting.put(SettingBoxKey.passwordHint, value);
+      _setting.put(SettingBoxKey.passwordHint, value);
+  static int get appFontWeight =>
+      _setting.get(SettingBoxKey.appFontWeight, defaultValue: -1);
+  static bool get darkVideoPage =>
+      _setting.get(SettingBoxKey.darkVideoPage, defaultValue: false);
 }

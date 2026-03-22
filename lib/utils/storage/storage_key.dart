@@ -6,4 +6,6 @@ abstract final class SettingBoxKey {
   static const String defaultTextScale = 'defaultTextScale';
   static const String customColor = 'customColor';
   static const String passwordHint = 'passwordHint';
+  static const String appFontWeight = 'appFontWeight';
+  static const String darkVideoPage = 'darkVideoPage';
 }
