@@ -47,6 +47,8 @@ class JsonSettingStorage {
   }
 
   Set<String> get keys => _data.keys.toSet();
+
+  Map<String, dynamic> getAll() => Map<String, dynamic>.from(_data);
 }
 
 abstract final class GStorage {
