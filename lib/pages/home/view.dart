@@ -38,9 +38,11 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: ListenableBuilder(
-        listenable: _controller,
+      body: AnimatedBuilder(
+        animation: _controller,
         builder: (context, child) {
+          // ignore: unnecessary_statements
+          Theme.of(context).colorScheme;
           return Column(
             children: [
               SizedBox(
