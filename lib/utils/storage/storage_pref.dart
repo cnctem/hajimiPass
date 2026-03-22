@@ -11,13 +11,13 @@ abstract final class Pref {
   static bool get isPureBlackTheme =>
       GStorage.setting.get(SettingBoxKey.isPureBlackTheme, defaultValue: false);
   static int get schemeVariant =>
-      GStorage.setting.get(SettingBoxKey.schemeVariant, defaultValue: 0);
+      GStorage.setting.get(SettingBoxKey.schemeVariant, defaultValue: 10);
   static bool get dynamicColor =>
       GStorage.setting.get(SettingBoxKey.dynamicColor, defaultValue: false);
   static double get defaultTextScale =>
       GStorage.setting.get(SettingBoxKey.defaultTextScale, defaultValue: 1.0);
   static int get customColor =>
-      GStorage.setting.get(SettingBoxKey.customColor, defaultValue: 0);
+      GStorage.setting.get(SettingBoxKey.customColor, defaultValue: 5);
   static String get passwordHint =>
       GStorage.setting.get(SettingBoxKey.passwordHint, defaultValue: '');
   static set passwordHint(String value) =>
