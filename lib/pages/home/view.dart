@@ -22,7 +22,8 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('  哈基密码本'),
+        title: const Text('哈基密码本'),
+        titleSpacing: 16,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -49,21 +50,20 @@ class _HomePageState extends State<HomePage> {
                 height: 48,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: _controller.tags.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
                     final tag = _controller.tags[index];
                     final selected = tag == _controller.selectedTag;
-                    return ChoiceChip(
-                      label: Text(tag),
-                      selected: selected,
-                      onSelected: (_) => _controller.selectTag(tag),
-                      shape: const StadiumBorder(),
-                      showCheckmark: false,
+                    return Center(
+                      child: ChoiceChip(
+                        label: Text(tag),
+                        selected: selected,
+                        onSelected: (_) => _controller.selectTag(tag),
+                        shape: const StadiumBorder(),
+                        showCheckmark: false,
+                      ),
                     );
                   },
                 ),
