@@ -33,9 +33,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () => Navigator.pop(context, true),
             child: Text(
               '删除',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
         ],
@@ -46,6 +44,64 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget _buildReorderableList() {
+    if (_controller.accounts.isEmpty) {
+      return const Center(child: Text('暂无账号'));
+    }
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: _controller.accounts.length,
+      onReorder: _controller.reorderAccounts,
+      itemBuilder: (context, index) {
+        final account = _controller.accounts[index];
+        final firstItemValue = account.accountItemList.isNotEmpty
+            ? account.accountItemList.first.itemValue
+            : '';
+        return ListTile(
+          key: ValueKey(account.name + account.lastEditTime.toString()),
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Text(
+              account.name.isNotEmpty
+                  ? account.name.substring(0, 1).toUpperCase()
+                  : '?',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          title: Text(account.name),
+          subtitle: Text(
+            firstItemValue,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: () => _showDeleteConfirm(context, account),
+              ),
+              ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_handle),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,6 +109,11 @@ class _HomePageState extends State<HomePage> {
         title: const Text('哈基密码本'),
         titleSpacing: 16,
         actions: [
+          IconButton(
+            icon: Icon(_controller.isReorderMode ? Icons.check : Icons.sort),
+            tooltip: _controller.isReorderMode ? '完成' : '排序',
+            onPressed: _controller.toggleReorderMode,
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () => Navigator.pushNamed(context, '/creat'),
@@ -72,6 +133,9 @@ class _HomePageState extends State<HomePage> {
         builder: (context, child) {
           // ignore: unnecessary_statements
           Theme.of(context).colorScheme;
+          if (_controller.isReorderMode) {
+            return _buildReorderableList();
+          }
           return Column(
             children: [
               SizedBox(
@@ -109,8 +173,10 @@ class _HomePageState extends State<HomePage> {
                               ? account.accountItemList.first.itemValue
                               : '';
                           return GestureDetector(
-                            onSecondaryTap: () => _showDeleteConfirm(context, account),
-                            onLongPress: () => _showDeleteConfirm(context, account),
+                            onSecondaryTap: () =>
+                                _showDeleteConfirm(context, account),
+                            onLongPress: () =>
+                                _showDeleteConfirm(context, account),
                             child: ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: Theme.of(
@@ -118,7 +184,9 @@ class _HomePageState extends State<HomePage> {
                                 ).colorScheme.primaryContainer,
                                 child: Text(
                                   account.name.isNotEmpty
-                                      ? account.name.substring(0, 1).toUpperCase()
+                                      ? account.name
+                                            .substring(0, 1)
+                                            .toUpperCase()
                                       : '?',
                                   style: TextStyle(
                                     color: Theme.of(

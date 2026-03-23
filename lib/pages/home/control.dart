@@ -5,8 +5,12 @@ import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 class HomeController extends ChangeNotifier {
   List<Account> _allAccounts = [];
   String _selectedTag = '全部';
+  bool _isReorderMode = false;
+
+  bool get isReorderMode => _isReorderMode;
 
   List<Account> get accounts {
+    if (_isReorderMode) return _allAccounts;
     if (_selectedTag == '收藏') {
       return _allAccounts.where((a) => a.favorite).toList();
     }
@@ -29,6 +33,22 @@ class HomeController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggleReorderMode() {
+    _isReorderMode = !_isReorderMode;
+    notifyListeners();
+  }
+
+  void reorderAccounts(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex--;
+    final account = _allAccounts.removeAt(oldIndex);
+    _allAccounts.insert(newIndex, account);
+    HajimiStorage.instance.accountList.accountList
+      ..clear()
+      ..addAll(_allAccounts);
+    HajimiStorage.instance.save();
+    notifyListeners();
+  }
+
   HomeController() {
     _loadAccounts();
     HajimiStorage.instance.addListener(_loadAccounts);
@@ -44,7 +64,9 @@ class HomeController extends ChangeNotifier {
     final list = List<Account>.from(
       HajimiStorage.instance.accountList.accountList,
     );
-    list.sort((a, b) => a.name.compareTo(b.name));
+    if (!_isReorderMode) {
+      list.sort((a, b) => a.name.compareTo(b.name));
+    }
     _allAccounts = list;
     notifyListeners();
   }
