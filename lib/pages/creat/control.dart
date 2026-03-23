@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hajimipass/pages/edit/control.dart';
 import 'package:hajimipass/utils/models.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
@@ -28,7 +30,10 @@ class CreateController extends EditController {
     // addAccount 内部会调用 save() 持久化
     HajimiStorage.instance.addAccount(account);
 
-    print('Created new Account: ${account.toJson()}');
+    debugPrint('Created new Account: ${account.toJson()}');
+
+    SmartDialog.showToast('创建成功');
+
     notifyListeners();
   }
 }

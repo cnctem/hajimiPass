@@ -51,13 +51,21 @@ class EditPageState extends State<EditPage> {
               ),
               IconButton(
                 tooltip: '保存',
-                icon: const Icon(Icons.save),
-                onPressed: () async {
-                  await controller.save();
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                  }
-                },
+                icon: controller.isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save),
+                onPressed: controller.isSaving
+                    ? null
+                    : () async {
+                        await controller.save();
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                        }
+                      },
               ),
             ],
           ),

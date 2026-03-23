@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hajimipass/utils/models.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 
@@ -6,6 +7,7 @@ class EditController extends ChangeNotifier {
   late Account account;
   late TextEditingController nameController;
   final List<AccountItemController> itemControllers = [];
+  bool isSaving = false;
 
   EditController({Account? initialAccount}) {
     if (initialAccount != null) {
@@ -76,13 +78,17 @@ class EditController extends ChangeNotifier {
 
   // 保存逻辑
   Future<void> save() async {
-    updateFromControllers();
+    isSaving = true;
+    notifyListeners();
 
-    // 调用持久化存储保存
+    updateFromControllers();
     await HajimiStorage.instance.save();
 
-    debugPrint('Saved Account: ${account.toJson()}');
+    isSaving = false;
     notifyListeners();
+
+    debugPrint('Saved Account: ${account.toJson()}');
+    SmartDialog.showToast('保存成功');
   }
 
   @override
