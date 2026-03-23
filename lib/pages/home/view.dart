@@ -18,6 +18,34 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
+  Future<void> _showDeleteConfirm(BuildContext context, dynamic account) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('删除确认'),
+        content: Text('确定要删除账号「${account.name}」吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              '删除',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _controller.deleteAccount(account);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,44 +108,48 @@ class _HomePageState extends State<HomePage> {
                               account.accountItemList.isNotEmpty
                               ? account.accountItemList.first.itemValue
                               : '';
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
-                              child: Text(
-                                account.name.isNotEmpty
-                                    ? account.name.substring(0, 1).toUpperCase()
-                                    : '?',
+                          return GestureDetector(
+                            onSecondaryTap: () => _showDeleteConfirm(context, account),
+                            onLongPress: () => _showDeleteConfirm(context, account),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                                child: Text(
+                                  account.name.isNotEmpty
+                                      ? account.name.substring(0, 1).toUpperCase()
+                                      : '?',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              title: Text(account.name),
+                              subtitle: Text(
+                                firstItemValue,
                                 style: TextStyle(
+                                  fontSize: 12,
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.bold,
+                                  ).textTheme.bodySmall?.color,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            title: Text(account.name),
-                            subtitle: Text(
-                              firstItemValue,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(
+                              onTap: () {
+                                Navigator.push(
                                   context,
-                                ).textTheme.bodySmall?.color,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        DetailPage(account: account),
+                                  ),
+                                );
+                              },
                             ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      DetailPage(account: account),
-                                ),
-                              );
-                            },
                           );
                         },
                       ),
