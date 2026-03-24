@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hajimipass/utils/models.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 
@@ -35,6 +36,7 @@ class HomeController extends ChangeNotifier {
 
   void toggleReorderMode() {
     _isReorderMode = !_isReorderMode;
+    SmartDialog.showToast(_isReorderMode ? '再次点击退出排序模式' : '已完成排序');
     notifyListeners();
   }
 

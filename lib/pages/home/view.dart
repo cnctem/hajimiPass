@@ -110,20 +110,23 @@ class _HomePageState extends State<HomePage> {
         titleSpacing: 16,
         actions: [
           IconButton(
-            icon: Icon(_controller.isReorderMode ? Icons.check : Icons.sort),
-            tooltip: _controller.isReorderMode ? '完成' : '排序',
+            icon: const Icon(Icons.sort),
+            tooltip: '排序',
             onPressed: _controller.toggleReorderMode,
           ),
           IconButton(
             icon: const Icon(Icons.add),
+            tooltip: '添加账号',
             onPressed: () => Navigator.pushNamed(context, '/creat'),
           ),
           IconButton(
             icon: const Icon(Icons.search),
+            tooltip: '搜索账号',
             onPressed: () => Navigator.pushNamed(context, '/search'),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
+            tooltip: '设置',
             onPressed: () => Navigator.pushNamed(context, '/setting'),
           ),
         ],
