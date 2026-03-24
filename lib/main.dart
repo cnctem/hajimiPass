@@ -1,5 +1,6 @@
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:hajimipass/controllers/theme_controller.dart';
@@ -14,10 +15,12 @@ import 'package:hajimipass/pages/setting/pages/font_size_select.dart';
 import 'package:hajimipass/pages/setting/pages/key_init.dart';
 import 'package:hajimipass/pages/setting/view.dart';
 import 'package:hajimipass/utils/extension/theme_ext.dart';
+import 'package:hajimipass/utils/platform_utils.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:hajimipass/utils/storage/storage_pref.dart';
 import 'package:hajimipass/utils/theme_utils.dart';
+import 'package:hajimipass/utils/widgets/mouse_back.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -90,7 +93,23 @@ class MyApp extends StatelessWidget {
           ).copyWith(textScaler: TextScaler.linear(Pref.defaultTextScale)),
           child: child!,
         );
-        return FlutterSmartDialog.init()(context, newChild);
+        final dialogChild = FlutterSmartDialog.init()(context, newChild);
+
+        if (PlatformUtils.isDesktop) {
+          return Focus(
+            canRequestFocus: false,
+            onKeyEvent: (_, event) {
+              if (event.logicalKey == LogicalKeyboardKey.escape &&
+                  event is KeyDownEvent) {
+                _onBack();
+                return KeyEventResult.handled;
+              }
+              return KeyEventResult.ignored;
+            },
+            child: MouseBackDetector(onTapDown: _onBack, child: dialogChild),
+          );
+        }
+        return dialogChild;
       },
       initialRoute: _getInitialRoute(),
       getPages: [

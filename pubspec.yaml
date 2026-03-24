@@ -47,6 +47,10 @@ dependencies:
   dynamic_color: ^1.8.1
   path: ^1.9.1
   url_launcher: ^6.3.1
+  device_info_plus:
+    git:
+      url: https://gitcode.com/openharmony-sig/flutter_plus_plugins.git
+      path: packages/device_info_plus/device_info_plus
 
 dev_dependencies:
   flutter_test:
