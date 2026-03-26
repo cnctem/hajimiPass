@@ -8,12 +8,12 @@ class EditController extends ChangeNotifier {
   late TextEditingController nameController;
   final List<AccountItemController> itemControllers = [];
   bool isSaving = false;
+  String? nameError;
 
   EditController({Account? initialAccount}) {
     if (initialAccount != null) {
       account = initialAccount;
     } else {
-      // 默认空账户，如果不传initialAccount应该由子类或外部处理
       account = Account(
         accountItemList: [],
         favorite: false,
@@ -29,6 +29,42 @@ class EditController extends ChangeNotifier {
     nameController = TextEditingController(text: account.name);
     for (var item in account.accountItemList) {
       itemControllers.add(AccountItemController(item));
+    }
+  }
+
+  bool _isNameDuplicate(String name) {
+    final accounts = HajimiStorage.instance.accountList.accountList;
+    for (final a in accounts) {
+      if (a.name == name && a.name != account.name) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool validateName() {
+    final name = nameController.text.trim();
+    if (name.isEmpty) {
+      nameError = '账号名称不能为空';
+      SmartDialog.showToast('账号名称不能为空');
+      notifyListeners();
+      return false;
+    }
+    if (_isNameDuplicate(name)) {
+      nameError = '账号名称已存在';
+      SmartDialog.showToast('账号名称已存在');
+      notifyListeners();
+      return false;
+    }
+    nameError = null;
+    notifyListeners();
+    return true;
+  }
+
+  void clearNameError([_]) {
+    if (nameError != null) {
+      nameError = null;
+      notifyListeners();
     }
   }
 
@@ -77,7 +113,9 @@ class EditController extends ChangeNotifier {
   }
 
   // 保存逻辑
-  Future<void> save() async {
+  Future<bool> save() async {
+    if (!validateName()) return false;
+
     isSaving = true;
     notifyListeners();
 
@@ -89,6 +127,7 @@ class EditController extends ChangeNotifier {
 
     debugPrint('Saved Account: ${account.toJson()}');
     SmartDialog.showToast('保存成功');
+    return true;
   }
 
   @override

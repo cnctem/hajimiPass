@@ -61,9 +61,10 @@ class EditPageState extends State<EditPage> {
                 onPressed: controller.isSaving
                     ? null
                     : () async {
-                        await controller.save();
-                        if (context.mounted) {
-                          Navigator.pop(context);
+                        if (await controller.save()) {
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
                         }
                       },
               ),
@@ -88,6 +89,8 @@ class EditPageState extends State<EditPage> {
                     ),
                   ),
                   controller: controller.nameController,
+                  errorText: controller.nameError,
+                  onChanged: controller.clearNameError,
                 ),
                 ListView.builder(
                   shrinkWrap: true,
@@ -128,9 +131,10 @@ class EditPageState extends State<EditPage> {
     required BuildContext context,
     required Widget label,
     required TextEditingController controller,
+    String? errorText,
+    ValueChanged<String>? onChanged,
     VoidCallback? onDelete,
   }) {
-    // 移除了 Card 和背景色，仅使用 Padding 保持间距
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
@@ -151,10 +155,11 @@ class EditPageState extends State<EditPage> {
           TextField(
             controller: controller,
             style: const TextStyle(fontSize: 16),
-            decoration: const InputDecoration(
+            onChanged: onChanged,
+            decoration: InputDecoration(
               isDense: true,
-              contentPadding: EdgeInsets.only(top: 8, bottom: 8),
-              // 默认使用 UnderlineInputBorder
+              contentPadding: const EdgeInsets.only(top: 8, bottom: 8),
+              errorText: errorText,
             ),
           ),
         ],

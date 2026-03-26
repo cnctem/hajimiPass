@@ -20,20 +20,17 @@ class CreateController extends EditController {
     );
   }
 
-  // 重写保存逻辑如果需要特殊的创建后处理
   @override
-  Future<void> save() async {
-    // 1. 更新 Account 对象的数据
-    updateFromControllers();
+  Future<bool> save() async {
+    if (!validateName()) return false;
 
-    // 2. 将新创建的 Account 添加到全局列表并保存
-    // addAccount 内部会调用 save() 持久化
+    updateFromControllers();
     HajimiStorage.instance.addAccount(account);
 
     debugPrint('Created new Account: ${account.toJson()}');
-
     SmartDialog.showToast('创建成功');
 
     notifyListeners();
+    return true;
   }
 }
