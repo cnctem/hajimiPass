@@ -67,6 +67,12 @@ class ImportService {
         }
         accountList = await _decryptAccountList(decoded, password);
       } else {
+        if (!_isPlainAccountPayload(decoded)) {
+          return const ImportResultData(
+            result: ImportResult.error,
+            message: '导入失败：不是账号数据格式',
+          );
+        }
         accountList = AccountList.fromJson(decoded);
       }
 
@@ -102,11 +108,17 @@ class ImportService {
       if (settings == null) {
         return const ImportResultData(
           result: ImportResult.error,
-          message: '未找到设置数据',
+          message: '导入失败：不是设置数据格式',
         );
       }
 
       final normalized = _normalizeSettings(settings);
+      if (normalized.isEmpty) {
+        return const ImportResultData(
+          result: ImportResult.error,
+          message: '导入失败：未识别到有效设置项',
+        );
+      }
       if (mode == ImportMode.overwrite) {
         await GStorage.setting.replaceAll(normalized);
       } else {
@@ -159,6 +171,11 @@ class ImportService {
         data['iterations'] is int;
   }
 
+  bool _isPlainAccountPayload(Map<String, dynamic> data) {
+    // 导出的账号明文至少包含 accountList 字段，避免把任意 JSON 当成账号数据。
+    return data['accountList'] is List;
+  }
+
   Future<AccountList> _decryptAccountList(
     Map<String, dynamic> encrypted,
     String password,
@@ -189,15 +206,21 @@ class ImportService {
   }
 
   Map<String, dynamic>? _extractSettingsMap(Map<String, dynamic> data) {
-    if (data['settings'] is Map) {
-      return Map<String, dynamic>.from(data['settings'] as Map);
-    }
-
+    // 账号格式直接拦截，避免误导入。
     if (data['accountList'] is List<dynamic>) {
       return null;
     }
 
-    return Map<String, dynamic>.from(data);
+    if (data['settings'] is Map) {
+      final nested = Map<String, dynamic>.from(data['settings'] as Map);
+      return _containsKnownSettingKey(nested) ? nested : null;
+    }
+
+    if (_containsKnownSettingKey(data)) {
+      return Map<String, dynamic>.from(data);
+    }
+
+    return null;
   }
 
   Map<String, dynamic> _normalizeSettings(Map<String, dynamic> input) {
@@ -238,6 +261,25 @@ class ImportService {
         return value;
     }
   }
+
+  bool _containsKnownSettingKey(Map<String, dynamic> data) {
+    for (final key in _knownSettingKeys) {
+      if (data.containsKey(key)) return true;
+    }
+    return false;
+  }
+
+  static const Set<String> _knownSettingKeys = {
+    SettingBoxKey.themeMode,
+    SettingBoxKey.isPureBlackTheme,
+    SettingBoxKey.schemeVariant,
+    SettingBoxKey.dynamicColor,
+    SettingBoxKey.defaultTextScale,
+    SettingBoxKey.customColor,
+    SettingBoxKey.passwordHint,
+    SettingBoxKey.appFontWeight,
+    SettingBoxKey.darkVideoPage,
+  };
 
   void _refreshThemeController() {
     if (!Get.isRegistered<ThemeController>()) return;
