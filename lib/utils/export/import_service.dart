@@ -1,0 +1,253 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:hajimipass/utils/hajimi/contact_store.dart';
+import 'package:hajimipass/utils/models.dart';
+import 'package:hajimipass/utils/storage/hajimi_storage.dart';
+import 'package:hajimipass/utils/storage/storage.dart';
+import 'package:hajimipass/utils/storage/storage_key.dart';
+import 'package:hajimipass/utils/storage/storage_pref.dart';
+import 'package:hajimipass/utils/theme/theme_controller.dart';
+import 'package:hajimipass/utils/theme/theme_types.dart';
+
+enum ImportMode { overwrite, merge }
+
+enum ImportResult { success, cancelled, error, passwordRequired }
+
+class ImportResultData {
+  final ImportResult result;
+  final String? message;
+  final AccountImportSummary? accountSummary;
+  final int? appliedSettingsCount;
+
+  const ImportResultData({
+    required this.result,
+    this.message,
+    this.accountSummary,
+    this.appliedSettingsCount,
+  });
+}
+
+class ImportService {
+  static final ImportService _instance = ImportService._internal();
+  static ImportService get instance => _instance;
+
+  ImportService._internal();
+
+  Future<ImportResultData> importAccountsFromContent({
+    required String content,
+    required ImportMode mode,
+    String? password,
+  }) async {
+    try {
+      final storage = HajimiStorage.instance;
+      if (!storage.unlocked) {
+        return const ImportResultData(
+          result: ImportResult.error,
+          message: '请先解锁账号数据',
+        );
+      }
+
+      final decoded = jsonDecode(content);
+      if (decoded is! Map<String, dynamic>) {
+        return const ImportResultData(
+          result: ImportResult.error,
+          message: '导入文件格式错误',
+        );
+      }
+
+      AccountList accountList;
+      if (_isEncryptedPayload(decoded)) {
+        if (password == null || password.isEmpty) {
+          return const ImportResultData(result: ImportResult.passwordRequired);
+        }
+        accountList = await _decryptAccountList(decoded, password);
+      } else {
+        accountList = AccountList.fromJson(decoded);
+      }
+
+      final summary = await storage.importAccounts(
+        accountList,
+        overwrite: mode == ImportMode.overwrite,
+      );
+
+      return ImportResultData(
+        result: ImportResult.success,
+        accountSummary: summary,
+      );
+    } catch (e) {
+      debugPrint('Import accounts error: $e');
+      return ImportResultData(result: ImportResult.error, message: '导入失败: $e');
+    }
+  }
+
+  Future<ImportResultData> importSettingsFromContent({
+    required String content,
+    required ImportMode mode,
+  }) async {
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is! Map<String, dynamic>) {
+        return const ImportResultData(
+          result: ImportResult.error,
+          message: '导入文件格式错误',
+        );
+      }
+
+      final settings = _extractSettingsMap(decoded);
+      if (settings == null) {
+        return const ImportResultData(
+          result: ImportResult.error,
+          message: '未找到设置数据',
+        );
+      }
+
+      final normalized = _normalizeSettings(settings);
+      if (mode == ImportMode.overwrite) {
+        await GStorage.setting.replaceAll(normalized);
+      } else {
+        await GStorage.setting.putAll(normalized);
+      }
+
+      _refreshThemeController();
+
+      return ImportResultData(
+        result: ImportResult.success,
+        appliedSettingsCount: normalized.length,
+      );
+    } catch (e) {
+      debugPrint('Import settings error: $e');
+      return ImportResultData(result: ImportResult.error, message: '导入失败: $e');
+    }
+  }
+
+  Future<String?> pickJsonTextFromFile() async {
+    if (kIsWeb) return null;
+    if (!Platform.isMacOS) return null;
+
+    final chooseResult = await Process.run('osascript', [
+      '-e',
+      '''
+      set theFile to choose file with prompt "请选择导入文件(JSON)"
+      return POSIX path of theFile
+      ''',
+    ]);
+
+    if (chooseResult.exitCode != 0) {
+      return null;
+    }
+
+    final filePath = (chooseResult.stdout as String).trim();
+    if (filePath.isEmpty) return null;
+    return File(filePath).readAsString();
+  }
+
+  Future<String?> readTextFromClipboard() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text?.trim();
+    return (text == null || text.isEmpty) ? null : text;
+  }
+
+  bool _isEncryptedPayload(Map<String, dynamic> data) {
+    return data['encryptedData'] is String &&
+        data['iv'] is String &&
+        data['salt'] is String &&
+        data['iterations'] is int;
+  }
+
+  Future<AccountList> _decryptAccountList(
+    Map<String, dynamic> encrypted,
+    String password,
+  ) async {
+    final payload = EncryptedPayload.fromJson(encrypted);
+    final salt = base64Decode(payload.salt);
+    final iv = base64Decode(payload.iv);
+    final encryptedData = base64Decode(payload.encryptedData);
+
+    final derivedKey = await HajimiSecurity.deriveKey(
+      password,
+      salt,
+      payload.iterations,
+    );
+    final aesGcm = AesGcm.with256bits();
+    final secretKey = SecretKey(derivedKey);
+
+    final ct = encryptedData.sublist(0, encryptedData.length - 16);
+    final tag = encryptedData.sublist(encryptedData.length - 16);
+    final plaintext = await aesGcm.decrypt(
+      SecretBox(ct, nonce: iv, mac: Mac(tag)),
+      secretKey: secretKey,
+    );
+
+    return AccountList.fromJson(
+      jsonDecode(utf8.decode(plaintext)) as Map<String, dynamic>,
+    );
+  }
+
+  Map<String, dynamic>? _extractSettingsMap(Map<String, dynamic> data) {
+    if (data['settings'] is Map) {
+      return Map<String, dynamic>.from(data['settings'] as Map);
+    }
+
+    if (data['accountList'] is List<dynamic>) {
+      return null;
+    }
+
+    return Map<String, dynamic>.from(data);
+  }
+
+  Map<String, dynamic> _normalizeSettings(Map<String, dynamic> input) {
+    final normalized = <String, dynamic>{};
+    for (final entry in input.entries) {
+      final key = entry.key;
+      final value = _normalizeSettingValue(key, entry.value);
+      if (value != null) {
+        normalized[key] = value;
+      }
+    }
+    return normalized;
+  }
+
+  dynamic _normalizeSettingValue(String key, dynamic value) {
+    switch (key) {
+      case SettingBoxKey.themeMode:
+        if (value is num) {
+          final index = value.toInt();
+          if (index >= 0 && index < ThemeType.values.length) {
+            return index;
+          }
+        }
+        return null;
+      case SettingBoxKey.isPureBlackTheme:
+      case SettingBoxKey.dynamicColor:
+      case SettingBoxKey.darkVideoPage:
+        return value is bool ? value : null;
+      case SettingBoxKey.schemeVariant:
+      case SettingBoxKey.customColor:
+      case SettingBoxKey.appFontWeight:
+        return value is num ? value.toInt() : null;
+      case SettingBoxKey.defaultTextScale:
+        return value is num ? value.toDouble() : null;
+      case SettingBoxKey.passwordHint:
+        return value is String ? value : null;
+      default:
+        return value;
+    }
+  }
+
+  void _refreshThemeController() {
+    if (!Get.isRegistered<ThemeController>()) return;
+
+    final controller = Get.find<ThemeController>();
+    controller.themeType.value = Pref.themeType;
+    controller.dynamicColor.value = Pref.dynamicColor;
+    controller.isPureBlackTheme.value = Pref.isPureBlackTheme;
+    controller.currentTextScale.value = Pref.defaultTextScale;
+    controller.customColor.value = Pref.customColor;
+    controller.schemeVariant.value = Pref.schemeVariant;
+  }
+}

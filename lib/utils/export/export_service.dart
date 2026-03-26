@@ -79,6 +79,12 @@ class ExportService {
               errorMessage: '请输入加密密码',
             );
           }
+          if (password.trim().length < 6) {
+            return const ExportResultData(
+              result: ExportResult.error,
+              errorMessage: '加密密码长度不能少于6位',
+            );
+          }
           content = await _encryptAccountList(accountList, password);
           fileName = _generateFileName('accounts_encrypted', 'json');
           mimeType = 'application/json';
