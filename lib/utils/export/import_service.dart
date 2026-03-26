@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -138,24 +138,15 @@ class ImportService {
   }
 
   Future<String?> pickJsonTextFromFile() async {
-    if (kIsWeb) return null;
-    if (!Platform.isMacOS) return null;
-
-    final chooseResult = await Process.run('osascript', [
-      '-e',
-      '''
-      set theFile to choose file with prompt "请选择导入文件(JSON)"
-      return POSIX path of theFile
-      ''',
-    ]);
-
-    if (chooseResult.exitCode != 0) {
-      return null;
-    }
-
-    final filePath = (chooseResult.stdout as String).trim();
-    if (filePath.isEmpty) return null;
-    return File(filePath).readAsString();
+    const typeGroup = XTypeGroup(
+      label: 'json',
+      extensions: ['json'],
+      mimeTypes: ['application/json', 'text/plain'],
+      webWildCards: ['json'],
+    );
+    final file = await openFile(acceptedTypeGroups: [typeGroup]);
+    if (file == null) return null;
+    return file.readAsString();
   }
 
   Future<String?> readTextFromClipboard() async {
