@@ -248,6 +248,135 @@ class HajimiStorage extends ChangeNotifier {
   void updateAccount(Account account) {
     save();
   }
+
+  Future<AccountImportSummary> importAccounts(
+    AccountList imported, {
+    required bool overwrite,
+  }) async {
+    if (!_unlocked) {
+      throw StateError('请先解锁账号数据');
+    }
+
+    if (_accountList == null) {
+      _createNewList();
+    }
+
+    if (overwrite) {
+      _accountList = AccountList(
+        accountList: imported.accountList.map(_copyAccount).toList(),
+        lastEditTime: DateTime.now().millisecondsSinceEpoch,
+        tagList: _mergeTags([
+          ...imported.tagList,
+          ..._collectTags(imported.accountList),
+        ]),
+        version: imported.version > 0 ? imported.version : 1,
+      );
+      await save();
+      return AccountImportSummary(
+        importedCount: imported.accountList.length,
+        addedCount: imported.accountList.length,
+        updatedCount: 0,
+        skippedCount: 0,
+        overwrite: true,
+      );
+    }
+
+    final local = _accountList!;
+    final byName = <String, Account>{
+      for (final a in local.accountList) a.name: a,
+    };
+    var added = 0;
+    var updated = 0;
+    var skipped = 0;
+
+    for (final incoming in imported.accountList) {
+      final localAccount = byName[incoming.name];
+      if (localAccount == null) {
+        final copy = _copyAccount(incoming);
+        local.accountList.add(copy);
+        byName[copy.name] = copy;
+        added++;
+        continue;
+      }
+
+      if (incoming.lastEditTime >= localAccount.lastEditTime) {
+        final index = local.accountList.indexOf(localAccount);
+        final replacement = _copyAccount(incoming);
+        local.accountList[index] = replacement;
+        byName[replacement.name] = replacement;
+        updated++;
+      } else {
+        skipped++;
+      }
+    }
+
+    local.tagList = _mergeTags([
+      ...local.tagList,
+      ...imported.tagList,
+      ..._collectTags(local.accountList),
+    ]);
+    local.version = local.version >= imported.version
+        ? local.version
+        : imported.version;
+    _accountList = local;
+
+    await save();
+    return AccountImportSummary(
+      importedCount: imported.accountList.length,
+      addedCount: added,
+      updatedCount: updated,
+      skippedCount: skipped,
+      overwrite: false,
+    );
+  }
+
+  Account _copyAccount(Account account) {
+    return Account(
+      accountItemList: account.accountItemList
+          .map(
+            (item) =>
+                AccountItem(itemName: item.itemName, itemValue: item.itemValue),
+          )
+          .toList(),
+      favorite: account.favorite,
+      lastEditTime: account.lastEditTime,
+      name: account.name,
+      tagList: account.tagList.map((tag) => Tag(tagName: tag.tagName)).toList(),
+    );
+  }
+
+  List<Tag> _mergeTags(List<Tag> tags) {
+    final names = <String>{};
+    final merged = <Tag>[];
+    for (final tag in tags) {
+      final normalized = tag.tagName.trim();
+      if (normalized.isEmpty || names.contains(normalized)) continue;
+      names.add(normalized);
+      merged.add(Tag(tagName: normalized));
+    }
+    merged.sort((a, b) => a.tagName.compareTo(b.tagName));
+    return merged;
+  }
+
+  List<Tag> _collectTags(List<Account> accounts) {
+    return accounts.expand((a) => a.tagList).toList();
+  }
+}
+
+class AccountImportSummary {
+  final int importedCount;
+  final int addedCount;
+  final int updatedCount;
+  final int skippedCount;
+  final bool overwrite;
+
+  const AccountImportSummary({
+    required this.importedCount,
+    required this.addedCount,
+    required this.updatedCount,
+    required this.skippedCount,
+    required this.overwrite,
+  });
 }
 
 // 简单的基于文件的 StorageAdapter 实现

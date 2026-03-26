@@ -41,6 +41,21 @@ class JsonSettingStorage {
     await save();
   }
 
+  Future<void> putAll(Map<String, dynamic> values) async {
+    _data.addAll(values);
+    await save();
+  }
+
+  Future<void> replaceAll(Map<String, dynamic> values) async {
+    _data = Map<String, dynamic>.from(values);
+    await save();
+  }
+
+  Future<void> clear() async {
+    _data.clear();
+    await save();
+  }
+
   Future<void> delete(String key) async {
     _data.remove(key);
     await save();
