@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:hajimipass/controllers/theme_controller.dart';
+import 'package:hajimipass/utils/theme/theme_controller.dart';
 import 'package:hajimipass/utils/constants.dart';
-import 'package:hajimipass/models/theme_types.dart';
+import 'package:hajimipass/utils/theme/theme_types.dart';
 import 'package:hajimipass/pages/creat/view.dart';
 import 'package:hajimipass/pages/home/view.dart';
 import 'package:hajimipass/pages/login/view.dart';
@@ -19,7 +19,7 @@ import 'package:hajimipass/utils/platform_utils.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:hajimipass/utils/storage/storage_pref.dart';
-import 'package:hajimipass/utils/theme_utils.dart';
+import 'package:hajimipass/utils/theme/theme_utils.dart';
 import 'package:hajimipass/utils/widgets/mouse_back.dart';
 
 void main() async {

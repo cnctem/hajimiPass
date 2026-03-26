@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hajimipass/controllers/theme_controller.dart';
+import 'package:hajimipass/utils/theme/theme_controller.dart';
 import 'package:hajimipass/pages/setting/models/style_settings.dart';
 
 class StyleSetting extends StatefulWidget {

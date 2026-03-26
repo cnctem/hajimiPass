@@ -1,8 +1,8 @@
 import 'package:flex_seed_scheme/flex_seed_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hajimipass/controllers/theme_controller.dart';
-import 'package:hajimipass/models/theme_types.dart';
+import 'package:hajimipass/utils/theme/theme_controller.dart';
+import 'package:hajimipass/utils/theme/theme_types.dart';
 import 'package:hajimipass/pages/setting/models/model.dart';
 import 'package:hajimipass/pages/setting/widgets/color_palette.dart';
 import 'package:hajimipass/pages/setting/widgets/select_dialog.dart';

@@ -1,4 +1,4 @@
-import 'package:hajimipass/models/theme_types.dart';
+import 'package:hajimipass/utils/theme/theme_types.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:hajimipass/utils/storage/storage_key.dart';
 

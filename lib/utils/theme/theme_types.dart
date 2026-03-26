@@ -5,7 +5,7 @@ enum ThemeType {
   light,
   dark;
 
-  String get desc => switch (this) {
+  String get desc => switch (this) { 
     ThemeType.system => '跟随系统',
     ThemeType.light => '浅色模式',
     ThemeType.dark => '深色模式',
