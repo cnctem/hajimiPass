@@ -30,4 +30,12 @@ abstract final class Pref {
       _setting.get(SettingBoxKey.appFontWeight, defaultValue: -1);
   static bool get darkVideoPage =>
       _setting.get(SettingBoxKey.darkVideoPage, defaultValue: false);
+  static String get webdavUri =>
+      _setting.get(SettingBoxKey.webdavUri, defaultValue: '');
+  static String get webdavUsername =>
+      _setting.get(SettingBoxKey.webdavUsername, defaultValue: '');
+  static String get webdavPassword =>
+      _setting.get(SettingBoxKey.webdavPassword, defaultValue: '');
+  static String get webdavDirectory =>
+      _setting.get(SettingBoxKey.webdavDirectory, defaultValue: '/');
 }

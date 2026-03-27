@@ -247,6 +247,10 @@ class ImportService {
       case SettingBoxKey.defaultTextScale:
         return value is num ? value.toDouble() : null;
       case SettingBoxKey.passwordHint:
+      case SettingBoxKey.webdavUri:
+      case SettingBoxKey.webdavUsername:
+      case SettingBoxKey.webdavPassword:
+      case SettingBoxKey.webdavDirectory:
         return value is String ? value : null;
       default:
         return value;
@@ -270,6 +274,10 @@ class ImportService {
     SettingBoxKey.passwordHint,
     SettingBoxKey.appFontWeight,
     SettingBoxKey.darkVideoPage,
+    SettingBoxKey.webdavUri,
+    SettingBoxKey.webdavUsername,
+    SettingBoxKey.webdavPassword,
+    SettingBoxKey.webdavDirectory,
   };
 
   void _refreshThemeController() {

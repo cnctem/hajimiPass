@@ -47,6 +47,7 @@ dependencies:
   dynamic_color: ^1.8.1
   path: ^1.9.1
   file_selector: ^1.0.3
+  webdav_client: ^1.2.2
   url_launcher: ^6.3.1
   device_info_plus:
     git:

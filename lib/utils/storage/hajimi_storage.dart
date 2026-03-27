@@ -124,6 +124,58 @@ class HajimiStorage extends ChangeNotifier {
     return _accountList!;
   }
 
+  String exportRawAccountPayload() {
+    if (_storageAdapter == null) return '';
+    return _storageAdapter!.getString(_storageKey) ?? '';
+  }
+
+  Future<void> importRawAccountPayload(String payloadText) async {
+    if (_storageAdapter == null) {
+      throw StateError('存储未初始化');
+    }
+
+    final payload = EncryptedPayload.fromJson(
+      jsonDecode(payloadText) as Map<String, dynamic>,
+    );
+    final encrypted = payload.encryptedData;
+    if (encrypted.isEmpty) {
+      throw const FormatException('账号密文格式无效');
+    }
+
+    _storageAdapter!.setString(_storageKey, payloadText);
+
+    final oldPassword = _password;
+    _accountList = null;
+    _unlocked = false;
+    _password = '';
+
+    if (oldPassword.isNotEmpty) {
+      final ok = await auth(oldPassword);
+      if (!ok) {
+        await _tryLoad();
+      }
+    } else {
+      await _tryLoad();
+    }
+  }
+
+  Future<AccountImportSummary> mergeFromRawAccountPayload(
+    String payloadText,
+  ) async {
+    if (!_unlocked || _password.isEmpty) {
+      throw StateError('请先解锁账号数据');
+    }
+
+    final payload = EncryptedPayload.fromJson(
+      jsonDecode(payloadText) as Map<String, dynamic>,
+    );
+    final plaintext = await _decryptPayload(payload, _password);
+    final imported = AccountList.fromJson(
+      jsonDecode(utf8.decode(plaintext)) as Map<String, dynamic>,
+    );
+    return importAccounts(imported, overwrite: false);
+  }
+
   // 认证/解锁
   Future<bool> auth(String password) async {
     if (_storageAdapter == null) return false;
@@ -182,33 +234,9 @@ class HajimiStorage extends ChangeNotifier {
     if (_password.isNotEmpty) {
       // 加密保存
       try {
-        final salt = HajimiSecurity.randomBytes(16);
-        final iv = HajimiSecurity.randomBytes(12);
-        const iterations = 100000;
-
-        final derivedKey = await HajimiSecurity.deriveKey(
+        final payload = await _encryptPayload(
+          utf8.encode(jsonEncode(_accountList!.toJson())),
           _password,
-          salt,
-          iterations,
-        );
-        final aesGcm = AesGcm.with256bits();
-        final secretKey = SecretKey(derivedKey);
-
-        final plaintext = utf8.encode(jsonEncode(_accountList!.toJson()));
-        final box = await aesGcm.encrypt(
-          plaintext,
-          secretKey: secretKey,
-          nonce: iv,
-        );
-
-        final combined = Uint8List.fromList(box.cipherText + box.mac.bytes);
-
-        final payload = EncryptedPayload(
-          version: 1,
-          encryptedData: base64Encode(combined),
-          iv: base64Encode(iv),
-          salt: base64Encode(salt),
-          iterations: iterations,
         );
         _storageAdapter!.setString(_storageKey, jsonEncode(payload.toJson()));
         notifyListeners();
@@ -315,9 +343,9 @@ class HajimiStorage extends ChangeNotifier {
       ...imported.tagList,
       ..._collectTags(local.accountList),
     ]);
-    local.version = local.version >= imported.version
-        ? local.version
-        : imported.version;
+    if (imported.version > local.version) {
+      local.version = imported.version;
+    }
     _accountList = local;
 
     await save();
@@ -360,6 +388,62 @@ class HajimiStorage extends ChangeNotifier {
 
   List<Tag> _collectTags(List<Account> accounts) {
     return accounts.expand((a) => a.tagList).toList();
+  }
+
+  Future<EncryptedPayload> _encryptPayload(
+    List<int> plaintext,
+    String password,
+  ) async {
+    final salt = HajimiSecurity.randomBytes(16);
+    final iv = HajimiSecurity.randomBytes(12);
+    const iterations = 100000;
+
+    final derivedKey = await HajimiSecurity.deriveKey(
+      password,
+      salt,
+      iterations,
+    );
+    final aesGcm = AesGcm.with256bits();
+    final secretKey = SecretKey(derivedKey);
+
+    final box = await aesGcm.encrypt(
+      plaintext,
+      secretKey: secretKey,
+      nonce: iv,
+    );
+    final combined = Uint8List.fromList(box.cipherText + box.mac.bytes);
+
+    return EncryptedPayload(
+      version: 1,
+      encryptedData: base64Encode(combined),
+      iv: base64Encode(iv),
+      salt: base64Encode(salt),
+      iterations: iterations,
+    );
+  }
+
+  Future<List<int>> _decryptPayload(
+    EncryptedPayload payload,
+    String password,
+  ) async {
+    final salt = base64Decode(payload.salt);
+    final iv = base64Decode(payload.iv);
+    final encryptedData = base64Decode(payload.encryptedData);
+
+    final derivedKey = await HajimiSecurity.deriveKey(
+      password,
+      salt,
+      payload.iterations,
+    );
+    final aesGcm = AesGcm.with256bits();
+    final secretKey = SecretKey(derivedKey);
+
+    final ct = encryptedData.sublist(0, encryptedData.length - 16);
+    final tag = encryptedData.sublist(encryptedData.length - 16);
+    return aesGcm.decrypt(
+      SecretBox(ct, nonce: iv, mac: Mac(tag)),
+      secretKey: secretKey,
+    );
   }
 }
 
@@ -405,8 +489,7 @@ class FileStorageAdapter implements StorageAdapter {
   @override
   void setString(String key, String value) {
     try {
-      final file = _getFile(key);
-      file.writeAsStringSync(value);
+      _getFile(key).writeAsStringSync(value);
     } catch (e) {
       debugPrint('Error writing file for key $key: $e');
     }
