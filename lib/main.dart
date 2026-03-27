@@ -25,7 +25,14 @@ import 'package:hajimipass/utils/widgets/mouse_back.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
-    await Future.wait([HajimiStorage.instance.init(), GStorage.init()]);
+    final tasks = <Future<void>>[
+      HajimiStorage.instance.init(),
+      GStorage.init(),
+    ];
+    if (PlatformUtils.isHarmony) {
+      tasks.add(PlatformUtils.initHarmonyDeviceType());
+    }
+    await Future.wait(tasks);
   } catch (e) {
     debugPrint('Initialization error: $e');
   }
