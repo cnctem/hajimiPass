@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hajimipass/utils/hajimi/contact_store.dart';
 import 'package:hajimipass/utils/models.dart';
+import 'package:hajimipass/utils/platform_utils.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -184,6 +185,14 @@ class ExportService {
     return buffer.toString();
   }
 
+  Future<String> encryptAccountsToJson(String password) async {
+    final hajimiStorage = HajimiStorage.instance;
+    if (!hajimiStorage.unlocked) {
+      throw Exception('请先解锁账号数据');
+    }
+    return _encryptAccountList(hajimiStorage.accountList, password);
+  }
+
   Future<String> _encryptAccountList(
     AccountList accountList,
     String password,
@@ -240,7 +249,7 @@ class ExportService {
       );
     }
 
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (Platform.isAndroid || Platform.isIOS || PlatformUtils.isHarmony) {
       return await _saveFileMobile(content, fileName, mimeType);
     } else {
       return await _saveFileDesktop(content, fileName);

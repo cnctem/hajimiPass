@@ -7,6 +7,7 @@ import 'package:hajimipass/utils/export/import_service.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:hajimipass/utils/storage/storage_pref.dart';
+import 'package:hajimipass/utils/export/export_service.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 class WebDavResult {
@@ -124,7 +125,7 @@ class WebDavService {
     }
   }
 
-  Future<WebDavResult> backupAccounts() async {
+  Future<WebDavResult> backupAccounts({required String password}) async {
     final ready = await _ensureClient();
     if (!ready.success) {
       SmartDialog.showToast('备份账号失败: ${ready.message}');
@@ -138,11 +139,7 @@ class WebDavService {
     }
 
     try {
-      final data = storage.exportRawAccountPayload();
-      if (data.isEmpty) {
-        SmartDialog.showToast('备份账号失败：本地账号数据为空');
-        return const WebDavResult(success: false, message: '本地账号数据为空');
-      }
+      final data = await ExportService.instance.encryptAccountsToJson(password);
       final path = '$_remoteDirectory/${_accountsFileName()}';
       await _write(path, data);
       SmartDialog.showToast('WebDAV 备份账号成功');
@@ -153,7 +150,10 @@ class WebDavService {
     }
   }
 
-  Future<WebDavResult> restoreAccounts({required ImportMode mode}) async {
+  Future<WebDavResult> restoreAccounts({
+    required ImportMode mode,
+    String? password,
+  }) async {
     final ready = await _ensureClient();
     if (!ready.success) {
       SmartDialog.showToast('恢复账号失败: ${ready.message}');
@@ -164,19 +164,33 @@ class WebDavService {
       final path = '$_remoteDirectory/${_accountsFileName()}';
       final bytes = await _client!.read(path);
       final content = utf8.decode(bytes);
-      if (mode == ImportMode.overwrite) {
-        await HajimiStorage.instance.importRawAccountPayload(content);
-        SmartDialog.showToast('WebDAV 恢复账号成功：已覆盖本地账号数据');
+
+      final result = await ImportService.instance.importAccountsFromContent(
+        content: content,
+        mode: mode,
+        password: password,
+      );
+
+      if (result.result == ImportResult.passwordRequired) {
+        return const WebDavResult(success: false, message: 'passwordRequired');
+      }
+
+      if (result.result == ImportResult.success) {
+        final summary = result.accountSummary;
+        if (mode == ImportMode.overwrite) {
+          SmartDialog.showToast(
+            'WebDAV 恢复账号成功：已覆盖 ${summary?.addedCount ?? 0} 条账号',
+          );
+        } else {
+          SmartDialog.showToast(
+            'WebDAV 恢复账号成功：新增 ${summary?.addedCount ?? 0}，更新 ${summary?.updatedCount ?? 0}，跳过 ${summary?.skippedCount ?? 0}',
+          );
+        }
         return const WebDavResult(success: true);
       }
 
-      final summary = await HajimiStorage.instance.mergeFromRawAccountPayload(
-        content,
-      );
-      SmartDialog.showToast(
-        'WebDAV 恢复账号成功：新增 ${summary.addedCount}，更新 ${summary.updatedCount}，跳过 ${summary.skippedCount}',
-      );
-      return const WebDavResult(success: true);
+      SmartDialog.showToast(result.message ?? '恢复账号失败');
+      return WebDavResult(success: false, message: result.message);
     } catch (e) {
       SmartDialog.showToast('恢复账号失败: $e');
       return WebDavResult(success: false, message: e.toString());

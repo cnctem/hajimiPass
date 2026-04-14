@@ -181,9 +181,18 @@ class _WebDavSettingPageState extends State<WebDavSettingPage> {
   }
 
   Future<void> _backupAccounts() async {
+    final password = await _showPasswordDialog('设置备份加密密码');
+    if (password == null || password.isEmpty) {
+      SmartDialog.showToast('已取消备份账号');
+      return;
+    }
+    if (password.trim().length < 6) {
+      SmartDialog.showToast('加密密码长度不能少于6位');
+      return;
+    }
     await _runTask(() async {
       await _saveConfig();
-      await WebDavService.instance.backupAccounts();
+      await WebDavService.instance.backupAccounts(password: password);
     });
   }
 
@@ -194,10 +203,44 @@ class _WebDavSettingPageState extends State<WebDavSettingPage> {
       return;
     }
 
+    final password = await _showPasswordDialog('输入备份文件密码');
+    if (password == null || password.isEmpty) {
+      SmartDialog.showToast('已取消恢复账号');
+      return;
+    }
+
     await _runTask(() async {
       await _saveConfig();
-      await WebDavService.instance.restoreAccounts(mode: mode);
+      await WebDavService.instance.restoreAccounts(
+        mode: mode,
+        password: password,
+      );
     });
+  }
+
+  Future<String?> _showPasswordDialog(String title) {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          decoration: const InputDecoration(labelText: '密码'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<ImportMode?> _showImportModeDialog(String title) {

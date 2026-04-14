@@ -189,11 +189,12 @@ packages:
   file_selector:
     dependency: "direct main"
     description:
-      name: file_selector
-      sha256: bd15e43e9268db636b53eeaca9f56324d1622af30e5c34d6e267649758c84d9a
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.1.0"
+      path: "packages/file_selector/file_selector"
+      ref: HEAD
+      resolved-ref: "9d463c2acb74079d6892bb04ae9ad37b37c1b597"
+      url: "https://gitcode.com/openharmony-tpc/flutter_packages.git"
+    source: git
+    version: "1.0.0"
   file_selector_android:
     dependency: transitive
     description:
@@ -226,6 +227,15 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "0.9.5"
+  file_selector_ohos:
+    dependency: transitive
+    description:
+      path: "packages/file_selector/file_selector_ohos"
+      ref: HEAD
+      resolved-ref: "9d463c2acb74079d6892bb04ae9ad37b37c1b597"
+      url: "https://gitcode.com/openharmony-tpc/flutter_packages.git"
+    source: git
+    version: "0.5.0+2"
   file_selector_platform_interface:
     dependency: transitive
     description:

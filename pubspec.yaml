@@ -46,7 +46,10 @@ dependencies:
   flex_seed_scheme: ^3.6.1
   dynamic_color: ^1.8.1
   path: ^1.9.1
-  file_selector: ^1.0.3
+  file_selector: # 鸿蒙文件选择适配
+    git:
+      url: "https://gitcode.com/openharmony-tpc/flutter_packages.git"
+      path: "packages/file_selector/file_selector"
   webdav_client: ^1.2.2
   url_launcher: ^6.3.1
   device_info_plus:
