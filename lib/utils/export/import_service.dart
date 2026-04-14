@@ -87,6 +87,12 @@ class ImportService {
       );
     } catch (e) {
       debugPrint('Import accounts error: $e');
+      if (e is SecretBoxAuthenticationError) {
+        return const ImportResultData(
+          result: ImportResult.error,
+          message: '密码错误，无法解密账号数据',
+        );
+      }
       return ImportResultData(result: ImportResult.error, message: '导入失败: $e');
     }
   }

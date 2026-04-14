@@ -181,13 +181,17 @@ class _WebDavSettingPageState extends State<WebDavSettingPage> {
   }
 
   Future<void> _backupAccounts() async {
-    final password = await _showPasswordDialog('设置备份加密密码');
+    final password = await _showPasswordDialog(
+      '设置备份加密密码',
+      validator: (value) {
+        if (value.trim().length < 6) {
+          return '加密密码长度不能少于6位';
+        }
+        return null;
+      },
+    );
     if (password == null || password.isEmpty) {
       SmartDialog.showToast('已取消备份账号');
-      return;
-    }
-    if (password.trim().length < 6) {
-      SmartDialog.showToast('加密密码长度不能少于6位');
       return;
     }
     await _runTask(() async {
@@ -218,28 +222,49 @@ class _WebDavSettingPageState extends State<WebDavSettingPage> {
     });
   }
 
-  Future<String?> _showPasswordDialog(String title) {
+  Future<String?> _showPasswordDialog(
+    String title, {
+    String? Function(String)? validator,
+  }) {
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: const InputDecoration(labelText: '密码'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('取消'),
+      builder: (dialogContext) {
+        String? errorText;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: Text(title),
+            content: TextField(
+              controller: controller,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: '密码',
+                errorText: errorText,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () {
+                  final text = controller.text;
+                  if (validator != null) {
+                    final error = validator(text);
+                    if (error != null) {
+                      setState(() => errorText = error);
+                      return;
+                    }
+                  }
+                  Navigator.pop(dialogContext, text);
+                },
+                child: const Text('确定'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
