@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hajimipass/pages/home/control.dart';
 import 'package:hajimipass/pages/detail/view.dart';
 
@@ -117,17 +118,17 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: '添加账号',
-            onPressed: () => Navigator.pushNamed(context, '/creat'),
+            onPressed: () => context.push('/creat'),
           ),
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: '搜索账号',
-            onPressed: () => Navigator.pushNamed(context, '/search'),
+            onPressed: () => context.push('/search'),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: '设置',
-            onPressed: () => Navigator.pushNamed(context, '/setting'),
+            onPressed: () => context.push('/setting'),
           ),
         ],
       ),

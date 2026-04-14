@@ -4,14 +4,11 @@ import 'package:cryptography/cryptography.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 import 'package:hajimipass/utils/hajimi/contact_store.dart';
 import 'package:hajimipass/utils/models.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:hajimipass/utils/storage/storage_key.dart';
-import 'package:hajimipass/utils/storage/storage_pref.dart';
-import 'package:hajimipass/utils/theme/theme_controller.dart';
 import 'package:hajimipass/utils/theme/theme_types.dart';
 
 enum ImportMode { overwrite, merge }
@@ -37,6 +34,12 @@ class ImportService {
   static ImportService get instance => _instance;
 
   ImportService._internal();
+
+  VoidCallback? _onThemeRefresh;
+
+  void setThemeRefreshCallback(VoidCallback callback) {
+    _onThemeRefresh = callback;
+  }
 
   Future<ImportResultData> importAccountsFromContent({
     required String content,
@@ -281,14 +284,6 @@ class ImportService {
   };
 
   void _refreshThemeController() {
-    if (!Get.isRegistered<ThemeController>()) return;
-
-    final controller = Get.find<ThemeController>();
-    controller.themeType.value = Pref.themeType;
-    controller.dynamicColor.value = Pref.dynamicColor;
-    controller.isPureBlackTheme.value = Pref.isPureBlackTheme;
-    controller.currentTextScale.value = Pref.defaultTextScale;
-    controller.customColor.value = Pref.customColor;
-    controller.schemeVariant.value = Pref.schemeVariant;
+    _onThemeRefresh?.call();
   }
 }

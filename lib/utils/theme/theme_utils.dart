@@ -1,4 +1,3 @@
-import 'package:hajimipass/main.dart';
 import 'package:hajimipass/utils/extension/theme_ext.dart';
 import 'package:hajimipass/utils/storage/storage_pref.dart';
 import 'package:flutter/cupertino.dart';
@@ -129,7 +128,7 @@ abstract final class ThemeUtils {
         themeData = darkenTheme(themeData);
       }
       if (Pref.darkVideoPage) {
-        MyApp.darkThemeData = themeData;
+        // darkThemeData stored externally if needed
       }
     }
     return themeData;

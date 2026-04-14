@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:hajimipass/utils/theme/theme_controller.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hajimipass/utils/theme/theme_notifier.dart';
 
-class FontSizeSelectPage extends StatefulWidget {
+class FontSizeSelectPage extends ConsumerStatefulWidget {
   const FontSizeSelectPage({super.key});
 
   @override
-  State<FontSizeSelectPage> createState() => _FontSizeSelectPageState();
+  ConsumerState<FontSizeSelectPage> createState() => _FontSizeSelectPageState();
 }
 
-class _FontSizeSelectPageState extends State<FontSizeSelectPage> {
-  final ctr = Get.find<ThemeController>();
+class _FontSizeSelectPageState extends ConsumerState<FontSizeSelectPage> {
   List<double> list = List.generate(16, (index) => 0.85 + index * 0.05);
   late double minSize = list.first;
   late double maxSize = list.last;
@@ -19,12 +19,12 @@ class _FontSizeSelectPageState extends State<FontSizeSelectPage> {
   @override
   void initState() {
     super.initState();
-    currentSize = ctr.currentTextScale.value;
+    currentSize = ref.read(themeProvider).currentTextScale;
   }
 
   void setFontSize() {
-    ctr.currentTextScale.value = currentSize;
-    Get.back(result: currentSize);
+    ref.read(themeProvider.notifier).setCurrentTextScale(currentSize);
+    context.pop(currentSize);
   }
 
   @override
@@ -36,9 +36,7 @@ class _FontSizeSelectPageState extends State<FontSizeSelectPage> {
         actions: [
           TextButton(
             onPressed: () {
-              setState(() {
-                currentSize = 1.0;
-              });
+              setState(() => currentSize = 1.0);
               setFontSize();
             },
             child: const Text('重置'),

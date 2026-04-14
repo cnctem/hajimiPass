@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hajimipass/pages/login/control.dart';
 import 'package:hajimipass/utils/storage/storage_pref.dart';
 
@@ -28,9 +28,9 @@ class _LoginPageState extends State<LoginPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final success = await _controller.login(_passwordController.text);
-    if (success) {
+    if (success && mounted) {
       SmartDialog.showToast('解锁成功');
-      Get.offAllNamed('/');
+      context.go('/');
     }
   }
 

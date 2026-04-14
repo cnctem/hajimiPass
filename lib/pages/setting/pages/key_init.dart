@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage_pref.dart';
 
@@ -66,7 +66,7 @@ class _KeyInitPageState extends State<KeyInitPage> {
       Pref.passwordHint = hint;
 
       SmartDialog.showToast(_isChangeMode ? '密钥更改成功' : '密钥初始化成功');
-      Get.offAllNamed('/');
+      if (mounted) context.go('/');
     } catch (e) {
       SmartDialog.showToast('操作失败: $e');
     } finally {

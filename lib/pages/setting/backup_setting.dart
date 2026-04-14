@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hajimipass/pages/setting/models/backup_settings.dart';
-import 'package:hajimipass/pages/setting/pages/webdav_setting.dart';
 
 class BackupSetting extends StatefulWidget {
   const BackupSetting({super.key, this.showAppBar = true});
@@ -35,7 +34,7 @@ class _BackupSettingState extends State<BackupSetting> {
             title: const Text('WebDAV 同步'),
             subtitle: const Text('远程备份与恢复设置、账号'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Get.to(() => const WebDavSettingPage()),
+            onTap: () => context.push('/webdavSetting'),
           ),
           ...settings.map((item) => item.widget),
         ],

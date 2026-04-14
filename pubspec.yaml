@@ -42,7 +42,8 @@ dependencies:
       url: "https://gitcode.com/openharmony-tpc/flutter_packages.git"
       path: "packages/path_provider/path_provider"
   flutter_smart_dialog: ^5.0.1
-  get: ^4.7.3
+  flutter_riverpod: ^2.6.1
+  go_router: ^14.6.2
   flex_seed_scheme: ^3.6.1
   dynamic_color: ^1.8.1
   path: ^1.9.1

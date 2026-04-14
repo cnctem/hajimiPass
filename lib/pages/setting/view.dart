@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hajimipass/pages/setting/about_page.dart';
 import 'package:hajimipass/pages/setting/backup_setting.dart';
 import 'package:hajimipass/pages/setting/models/setting_type.dart';
@@ -53,15 +53,15 @@ class _SettingPageState extends State<SettingPage> {
     if (_isPortrait) {
       switch (type) {
         case SettingType.securitySettings:
-          Get.to(() => const SecuritySetting());
+          context.push('/securitySetting');
         case SettingType.styleSetting:
-          Get.to(() => const StyleSetting());
+          context.push('/styleSetting');
         case SettingType.backupSetting:
-          Get.to(() => const BackupSetting());
+          context.push('/backupSetting');
         case SettingType.extraSetting:
           break;
         case SettingType.about:
-          Get.to(() => const AboutPage());
+          context.push('/about');
       }
     } else {
       setState(() => _type = type);
