@@ -71,6 +71,38 @@ class _DetailPageState extends State<DetailPage> {
               label: '账号名称',
               value: widget.account.name,
             ),
+            if (widget.account.tagList.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '标签',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: widget.account.tagList
+                          .map(
+                            (tag) => Chip(
+                              label: Text(tag.tagName),
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
             ...widget.account.accountItemList.map(
               (item) => _buildItem(
                 context: context,

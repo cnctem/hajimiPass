@@ -5,14 +5,16 @@ import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 
 class EditController extends ChangeNotifier {
   late Account account;
+  final Account? _originalAccount;
   late TextEditingController nameController;
   final List<AccountItemController> itemControllers = [];
   bool isSaving = false;
   String? nameError;
 
-  EditController({Account? initialAccount}) {
+  EditController({Account? initialAccount})
+    : _originalAccount = initialAccount {
     if (initialAccount != null) {
-      account = initialAccount;
+      account = _copyAccount(initialAccount);
     } else {
       account = Account(
         accountItemList: [],
@@ -30,6 +32,21 @@ class EditController extends ChangeNotifier {
     for (var item in account.accountItemList) {
       itemControllers.add(AccountItemController(item));
     }
+  }
+
+  static Account _copyAccount(Account account) {
+    return Account(
+      accountItemList: account.accountItemList
+          .map(
+            (item) =>
+                AccountItem(itemName: item.itemName, itemValue: item.itemValue),
+          )
+          .toList(),
+      favorite: account.favorite,
+      lastEditTime: account.lastEditTime,
+      name: account.name,
+      tagList: account.tagList.map((tag) => Tag(tagName: tag.tagName)).toList(),
+    );
   }
 
   bool _isNameDuplicate(String name) {
@@ -80,6 +97,31 @@ class EditController extends ChangeNotifier {
     notifyListeners();
   }
 
+  List<String> get availableTags {
+    final allTags = HajimiStorage.instance.accountList.tagList
+        .map((t) => t.tagName)
+        .toSet();
+    final currentTags = account.tagList.map((t) => t.tagName).toSet();
+    return allTags.difference(currentTags).toList()..sort();
+  }
+
+  void addTag(String tagName) {
+    final normalized = tagName.trim();
+    if (normalized.isEmpty) return;
+    if (account.tagList.any((t) => t.tagName == normalized)) return;
+    account.tagList.add(Tag(tagName: normalized));
+    account.lastEditTime = DateTime.now().millisecondsSinceEpoch;
+    notifyListeners();
+  }
+
+  void removeTag(int index) {
+    if (index >= 0 && index < account.tagList.length) {
+      account.tagList.removeAt(index);
+      account.lastEditTime = DateTime.now().millisecondsSinceEpoch;
+      notifyListeners();
+    }
+  }
+
   void addAccountItem() {
     final newItem = AccountItem(itemName: '', itemValue: '');
     account.accountItemList.add(newItem);
@@ -112,6 +154,23 @@ class EditController extends ChangeNotifier {
     account.lastEditTime = DateTime.now().millisecondsSinceEpoch;
   }
 
+  void _commitToOriginalAccount() {
+    if (_originalAccount == null) return;
+
+    _originalAccount.name = account.name;
+    _originalAccount.favorite = account.favorite;
+    _originalAccount.lastEditTime = account.lastEditTime;
+    _originalAccount.accountItemList = account.accountItemList
+        .map(
+          (item) =>
+              AccountItem(itemName: item.itemName, itemValue: item.itemValue),
+        )
+        .toList();
+    _originalAccount.tagList = account.tagList
+        .map((tag) => Tag(tagName: tag.tagName))
+        .toList();
+  }
+
   // 保存逻辑
   Future<bool> save() async {
     if (!validateName()) return false;
@@ -120,7 +179,13 @@ class EditController extends ChangeNotifier {
     notifyListeners();
 
     updateFromControllers();
-    await HajimiStorage.instance.save();
+    _commitToOriginalAccount();
+    final original = _originalAccount;
+    if (original != null) {
+      await HajimiStorage.instance.updateAccount(original);
+    } else {
+      await HajimiStorage.instance.save();
+    }
 
     isSaving = false;
     notifyListeners();

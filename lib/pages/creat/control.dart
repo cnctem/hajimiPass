@@ -25,7 +25,7 @@ class CreateController extends EditController {
     if (!validateName()) return false;
 
     updateFromControllers();
-    HajimiStorage.instance.addAccount(account);
+    await HajimiStorage.instance.addAccount(account);
 
     debugPrint('Created new Account: ${account.toJson()}');
     SmartDialog.showToast('创建成功');

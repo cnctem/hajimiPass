@@ -256,7 +256,12 @@ class HajimiStorage extends ChangeNotifier {
     }
   }
 
-  void addAccount(Account account) {
+  void syncTagCatalog() {
+    if (_accountList == null) return;
+    _accountList!.tagList = _mergeTags(_collectTags(_accountList!.accountList));
+  }
+
+  Future<void> addAccount(Account account) async {
     // 必须解锁才能操作
     if (!_unlocked && _password.isNotEmpty) return;
 
@@ -264,17 +269,21 @@ class HajimiStorage extends ChangeNotifier {
     if (_accountList == null) _createNewList();
 
     accountList.accountList.add(account);
-    save();
+    syncTagCatalog();
+    await save();
   }
 
-  void removeAccount(Account account) {
+  Future<void> removeAccount(Account account) async {
     if (!_unlocked && _password.isNotEmpty) return;
     accountList.accountList.remove(account);
-    save();
+    syncTagCatalog();
+    await save();
   }
 
-  void updateAccount(Account account) {
-    save();
+  Future<void> updateAccount(Account _) async {
+    if (!_unlocked && _password.isNotEmpty) return;
+    syncTagCatalog();
+    await save();
   }
 
   Future<AccountImportSummary> importAccounts(

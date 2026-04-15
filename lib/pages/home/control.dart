@@ -74,7 +74,7 @@ class HomeController extends ChangeNotifier {
   }
 
   Future<void> deleteAccount(Account account) async {
-    HajimiStorage.instance.removeAccount(account);
+    await HajimiStorage.instance.removeAccount(account);
     _loadAccounts();
   }
 }

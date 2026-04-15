@@ -92,6 +92,7 @@ class EditPageState extends State<EditPage> {
                   errorText: controller.nameError,
                   onChanged: controller.clearNameError,
                 ),
+                _buildTagSection(context),
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -125,6 +126,139 @@ class EditPageState extends State<EditPage> {
         );
       },
     );
+  }
+
+  Widget _buildTagSection(BuildContext context) {
+    final tags = controller.account.tagList;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '标签',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.add, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: '添加标签',
+                onPressed: () => _showAddTagDialog(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...tags.asMap().entries.map((entry) {
+                return InputChip(
+                  label: Text(entry.value.tagName),
+                  onDeleted: () => controller.removeTag(entry.key),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                );
+              }),
+              if (tags.isEmpty)
+                Text(
+                  '暂无标签',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).hintColor,
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showAddTagDialog(BuildContext context) async {
+    final textController = TextEditingController();
+    final availableTags = controller.availableTags;
+    final newTag = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) {
+        final maxDialogHeight = MediaQuery.sizeOf(dialogContext).height * 0.6;
+        return AlertDialog(
+          title: const Text('添加标签'),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxDialogHeight),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: textController,
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: '输入标签名称',
+                      isDense: true,
+                    ),
+                    onSubmitted: (value) {
+                      Navigator.pop(dialogContext, value.trim());
+                    },
+                  ),
+                  if (availableTags.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      '已有标签',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: availableTags.map((tag) {
+                        return ActionChip(
+                          label: Text(tag),
+                          onPressed: () {
+                            Navigator.pop(dialogContext, tag);
+                          },
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, textController.text.trim());
+              },
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+    textController.dispose();
+    if (newTag != null && newTag.isNotEmpty) {
+      controller.addTag(newTag);
+    }
   }
 
   Widget _buildFieldCard({
