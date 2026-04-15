@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:file_selector/file_selector.dart' show XTypeGroup, getSaveLocation;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hajimipass/utils/hajimi/contact_store.dart';
@@ -11,6 +12,7 @@ import 'package:hajimipass/utils/storage/hajimi_storage.dart';
 import 'package:hajimipass/utils/storage/storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:share_plus/share_plus.dart';
 
 enum ExportType {
   accountPlaintextJson,
@@ -150,12 +152,12 @@ class ExportService {
     }
   }
 
-  Future<Map<String, dynamic>> _getSettingsData() async {
-    return {
+  Future<Map<String, dynamic>> _getSettingsData() {
+    return Future.value({
       'version': 1,
       'exportTime': DateTime.now().toIso8601String(),
       'settings': GStorage.setting.getAll(),
-    };
+    });
   }
 
   String _accountListToTxt(AccountList accountList) {
@@ -185,7 +187,7 @@ class ExportService {
     return buffer.toString();
   }
 
-  Future<String> encryptAccountsToJson(String password) async {
+  Future<String> encryptAccountsToJson(String password) {
     final hajimiStorage = HajimiStorage.instance;
     if (!hajimiStorage.unlocked) {
       throw Exception('请先解锁账号数据');
@@ -250,10 +252,10 @@ class ExportService {
     }
 
     if (Platform.isAndroid || Platform.isIOS || PlatformUtils.isHarmony) {
-      return await _saveFileMobile(content, fileName, mimeType);
-    } else {
-      return await _saveFileDesktop(content, fileName);
+      return _saveFileMobile(content, fileName, mimeType);
     }
+
+    return _saveFileDesktop(content, fileName);
   }
 
   Future<ExportResultData> _saveFileMobile(
@@ -265,16 +267,23 @@ class ExportService {
       final tempDir = await getTemporaryDirectory();
       final file = File(p.join(tempDir.path, fileName));
       await file.writeAsString(content);
-
-      return ExportResultData(
-        result: ExportResult.success,
-        filePath: file.path,
+      final shareResult = await Share.shareXFiles(
+        [XFile(file.path, mimeType: mimeType)],
+        text: 'HajimiPass 导出文件',
       );
+
+      switch (shareResult.status) {
+        case ShareResultStatus.success:
+        case ShareResultStatus.unavailable:
+          return const ExportResultData(result: ExportResult.success);
+        case ShareResultStatus.dismissed:
+          return const ExportResultData(result: ExportResult.cancelled);
+      }
     } catch (e) {
       debugPrint('Mobile save error: $e');
       return ExportResultData(
         result: ExportResult.error,
-        errorMessage: '保存文件失败: $e',
+        errorMessage: '分享文件失败: $e',
       );
     }
   }
@@ -284,11 +293,11 @@ class ExportService {
     String fileName,
   ) async {
     try {
-      String? savePath;
-
-      if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
-        savePath = await _showSaveDialog(fileName);
-      }
+      final saveLocation = await getSaveLocation(
+        acceptedTypeGroups: _buildSaveTypeGroups(fileName),
+        suggestedName: fileName,
+      );
+      final savePath = saveLocation?.path;
 
       if (savePath == null) {
         return const ExportResultData(result: ExportResult.cancelled);
@@ -307,19 +316,14 @@ class ExportService {
     }
   }
 
-  Future<String?> _showSaveDialog(String defaultFileName) async {
-    final result = await Process.run('osascript', [
-      '-e',
-      '''
-        set defaultName to "$defaultFileName"
-        set theFile to choose file name default name defaultName
-        return POSIX path of theFile
-        ''',
-    ]);
-
-    if (result.exitCode == 0) {
-      return (result.stdout as String).trim();
+  List<XTypeGroup> _buildSaveTypeGroups(String fileName) {
+    final extension = p.extension(fileName).replaceFirst('.', '');
+    if (extension.isEmpty) {
+      return const <XTypeGroup>[];
     }
-    return null;
+
+    return <XTypeGroup>[
+      XTypeGroup(label: extension.toUpperCase(), extensions: [extension]),
+    ];
   }
 }

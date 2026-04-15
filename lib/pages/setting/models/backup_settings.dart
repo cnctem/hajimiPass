@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:hajimipass/pages/setting/models/model.dart';
 import 'package:hajimipass/utils/export/export_service.dart';
 import 'package:hajimipass/utils/export/import_service.dart';
+import 'package:hajimipass/utils/platform_utils.dart';
 
 enum _ImportSource { file, clipboard, manual }
 
@@ -285,6 +288,10 @@ Future<void> _startImport(
       if (result.result == ImportResult.passwordRequired) {
         SmartDialog.dismiss();
         loadingShown = false;
+        if (!context.mounted) {
+          SmartDialog.showToast('页面已关闭，导入已取消');
+          return;
+        }
         final password = await _showPasswordDialog(context, '请输入导入文件密码');
         if (!context.mounted) {
           SmartDialog.showToast('页面已关闭，导入已取消');
@@ -530,11 +537,7 @@ Future<void> _exportAccounts(
 
   switch (result.result) {
     case ExportResult.success:
-      if (result.filePath != null) {
-        await _handleFileResult(result.filePath!);
-      } else {
-        SmartDialog.showToast('导出成功');
-      }
+      await _handleFileResult(result.filePath);
       break;
     case ExportResult.cancelled:
       SmartDialog.showToast('已取消');
@@ -554,11 +557,7 @@ Future<void> _exportSettings(BuildContext context, ExportType type) async {
 
   switch (result.result) {
     case ExportResult.success:
-      if (result.filePath != null) {
-        await _handleFileResult(result.filePath!);
-      } else {
-        SmartDialog.showToast('导出成功');
-      }
+      await _handleFileResult(result.filePath);
       break;
     case ExportResult.cancelled:
       SmartDialog.showToast('已取消');
@@ -569,6 +568,16 @@ Future<void> _exportSettings(BuildContext context, ExportType type) async {
   }
 }
 
-Future<void> _handleFileResult(String filePath) async {
-  SmartDialog.showToast('导出成功: $filePath');
+Future<void> _handleFileResult(String? filePath) async {
+  if (Platform.isAndroid || Platform.isIOS || PlatformUtils.isHarmony) {
+    SmartDialog.showToast('已打开系统分享，请按系统提示完成导出');
+    return;
+  }
+
+  if (filePath != null && filePath.isNotEmpty) {
+    SmartDialog.showToast('导出成功: $filePath');
+    return;
+  }
+
+  SmartDialog.showToast('导出成功');
 }
