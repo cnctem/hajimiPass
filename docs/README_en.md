@@ -53,4 +53,4 @@ This project is for educational and communication purposes only. Please comply w
 
 - [translate-ha-jimi](https://github.com/wifi504/translate-ha-jimi) - Project inspiration
 - [Flutter](https://flutter.dev/) - Cross-platform development framework
-- [Flutter ohos](https://gitcode.com/openharmony-tpc/flutter_flutter) - Flutter HarmonyOS adaptation
+- [Flutter ohos](https://gitcode.com/openharmony-sig/flutter_flutter) - Flutter HarmonyOS adaptation

@@ -72,7 +72,7 @@
 
 - [translate-ha-jimi](https://github.com/wifi504/translate-ha-jimi) - 哈基灵感来源
 - [Flutter](https://flutter.dev/) - 哈基开发框架
-- [Flutter ohos](https://gitcode.com/openharmony-tpc/flutter_flutter) - 哈基鸿蒙适配
+- [Flutter ohos](https://gitcode.com/openharmony-sig/flutter_flutter) - 哈基鸿蒙适配
 
 ---
 

@@ -54,4 +54,4 @@ hajimiPass 是一款基于 Flutter 开发的密码管理工具，灵感来源于
 
 - [translate-ha-jimi](https://github.com/wifi504/translate-ha-jimi) - 项目灵感来源
 - [Flutter](https://flutter.dev/) - 跨平台开发框架
-- [Flutter ohos](https://gitcode.com/openharmony-tpc/flutter_flutter) - Flutter 鸿蒙适配
+- [Flutter ohos](https://gitcode.com/openharmony-sig/flutter_flutter) - Flutter 鸿蒙适配
