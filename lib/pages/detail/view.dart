@@ -39,8 +39,8 @@ class _DetailPageState extends State<DetailPage> {
           IconButton(
             tooltip: '编辑',
             icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => EditPage(
@@ -49,6 +49,9 @@ class _DetailPageState extends State<DetailPage> {
                   ),
                 ),
               );
+              if (context.mounted) {
+                setState(() {});
+              }
             },
           ),
         ],
