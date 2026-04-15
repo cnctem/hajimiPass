@@ -16,21 +16,11 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  late bool _favorite;
-
-  @override
-  void initState() {
-    super.initState();
-    _favorite = widget.account.favorite;
-  }
-
   Future<void> _toggleFavorite() async {
     widget.account.favorite = !widget.account.favorite;
     widget.account.lastEditTime = DateTime.now().millisecondsSinceEpoch;
     await HajimiStorage.instance.save();
-    setState(() {
-      _favorite = widget.account.favorite;
-    });
+    setState(() {});
   }
 
   @override
@@ -40,15 +30,17 @@ class _DetailPageState extends State<DetailPage> {
         title: const Text('查看账号'),
         actions: [
           IconButton(
-            tooltip: _favorite ? '取消收藏' : '收藏',
-            icon: Icon(_favorite ? Icons.star : Icons.star_border),
+            tooltip: widget.account.favorite ? '取消收藏' : '收藏',
+            icon: Icon(
+              widget.account.favorite ? Icons.star : Icons.star_border,
+            ),
             onPressed: _toggleFavorite,
           ),
           IconButton(
             tooltip: '编辑',
             icon: const Icon(Icons.edit),
             onPressed: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => EditPage(

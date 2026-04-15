@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hajimipass/pages/search/control.dart';
-import 'package:hajimipass/pages/edit/view.dart';
-import 'package:hajimipass/pages/edit/control.dart';
+import 'package:hajimipass/pages/detail/view.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -77,12 +76,12 @@ class _SearchPageState extends State<SearchPage> {
           controller: _textController,
           textInputAction: TextInputAction.search,
           onChanged: _controller.updateQuery,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             visualDensity: VisualDensity.standard,
             hintText: '搜索',
             border: InputBorder.none,
           ),
-          onSubmitted: (value) => _controller.updateQuery(value),
+          onSubmitted: _controller.updateQuery,
         ),
       ),
       body: ListenableBuilder(
@@ -134,10 +133,7 @@ class _SearchPageState extends State<SearchPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => EditPage(
-                        controller: EditController(initialAccount: account),
-                        title: '编辑账号',
-                      ),
+                      builder: (context) => DetailPage(account: account),
                     ),
                   );
                 },
