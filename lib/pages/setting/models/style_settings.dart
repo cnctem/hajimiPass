@@ -83,5 +83,15 @@ List<SettingsModel> get styleSettings {
         controller.tagLayoutLeft.value = value;
       },
     ),
+    SwitchModel(
+      leading: const Icon(Icons.wrap_text_outlined),
+      title: '单行截断',
+      subtitle: '超长内容不换行，末尾显示省略号',
+      setKey: SettingBoxKey.noLineWrap,
+      defaultVal: true,
+      onChanged: (value) {
+        controller.noLineWrap.value = value;
+      },
+    ),
   ];
 }

@@ -144,6 +144,7 @@ class _HomePageState extends State<HomePage> {
           final themeController = Get.find<ThemeController>();
           return Obx(() {
             final tagLayoutLeft = themeController.tagLayoutLeft.value;
+            final noLineWrap = themeController.noLineWrap.value;
             final tagList = SizedBox(
               width: tagLayoutLeft ? 72 : null,
               height: tagLayoutLeft ? null : 48,
@@ -191,15 +192,23 @@ class _HomePageState extends State<HomePage> {
                                 : color.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: noLineWrap ? 1 : null,
+                          overflow: noLineWrap
+                              ? TextOverflow.ellipsis
+                              : TextOverflow.clip,
                         ),
                       ),
                     );
                   }
                   return Center(
                     child: ChoiceChip(
-                      label: Text(tag),
+                      label: Text(
+                        tag,
+                        maxLines: noLineWrap ? 1 : null,
+                        overflow: noLineWrap
+                            ? TextOverflow.ellipsis
+                            : TextOverflow.clip,
+                      ),
                       selected: selected,
                       onSelected: (_) => _controller.selectTag(tag),
                       shape: const StadiumBorder(),
@@ -243,7 +252,13 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            title: Text(account.name),
+                            title: Text(
+                              account.name,
+                              maxLines: noLineWrap ? 1 : null,
+                              overflow: noLineWrap
+                                  ? TextOverflow.ellipsis
+                                  : TextOverflow.clip,
+                            ),
                             subtitle: Text(
                               firstItemValue,
                               style: TextStyle(

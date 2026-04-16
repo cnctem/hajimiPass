@@ -40,4 +40,6 @@ abstract final class Pref {
       _setting.get(SettingBoxKey.webdavDirectory, defaultValue: '/');
   static bool get tagLayoutLeft =>
       _setting.get(SettingBoxKey.tagLayoutLeft, defaultValue: true);
+  static bool get noLineWrap =>
+      _setting.get(SettingBoxKey.noLineWrap, defaultValue: true);
 }

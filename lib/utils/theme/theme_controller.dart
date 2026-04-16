@@ -13,6 +13,7 @@ class ThemeController extends GetxController {
   final customColor = Pref.customColor.obs;
   final schemeVariant = Pref.schemeVariant.obs;
   final tagLayoutLeft = Pref.tagLayoutLeft.obs;
+  final noLineWrap = Pref.noLineWrap.obs; // default: true
 
   @override
   void onInit() {
@@ -44,6 +45,10 @@ class ThemeController extends GetxController {
     });
     ever(tagLayoutLeft, (callback) {
       setting.put(SettingBoxKey.tagLayoutLeft, callback);
+      Get.forceAppUpdate();
+    });
+    ever(noLineWrap, (callback) {
+      setting.put(SettingBoxKey.noLineWrap, callback);
       Get.forceAppUpdate();
     });
   }
