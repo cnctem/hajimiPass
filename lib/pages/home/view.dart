@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hajimipass/pages/home/control.dart';
 import 'package:hajimipass/pages/detail/view.dart';
+import 'package:hajimipass/utils/theme/theme_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -49,7 +51,7 @@ class _HomePageState extends State<HomePage> {
       return const Center(child: Text('暂无账号'));
     }
     return ReorderableListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: EdgeInsets.zero,
       itemCount: _controller.accounts.length,
       onReorder: _controller.reorderAccounts,
       itemBuilder: (context, index) {
@@ -139,94 +141,150 @@ class _HomePageState extends State<HomePage> {
           if (_controller.isReorderMode) {
             return _buildReorderableList();
           }
-          return Column(
-            children: [
-              SizedBox(
-                height: 48,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: _controller.tags.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final tag = _controller.tags[index];
-                    final selected = tag == _controller.selectedTag;
-                    return Center(
-                      child: ChoiceChip(
-                        label: Text(tag),
-                        selected: selected,
-                        onSelected: (_) => _controller.selectTag(tag),
-                        shape: const StadiumBorder(),
-                        showCheckmark: false,
+          final themeController = Get.find<ThemeController>();
+          return Obx(() {
+            final tagLayoutLeft = themeController.tagLayoutLeft.value;
+            final tagList = SizedBox(
+              width: tagLayoutLeft ? 72 : null,
+              height: tagLayoutLeft ? null : 48,
+              child: ListView.separated(
+                scrollDirection: tagLayoutLeft
+                    ? Axis.vertical
+                    : Axis.horizontal,
+                padding: tagLayoutLeft
+                    ? const EdgeInsets.symmetric(vertical: 12)
+                    : const EdgeInsets.symmetric(horizontal: 12),
+                itemCount: _controller.tags.length,
+                separatorBuilder: (_, __) => tagLayoutLeft
+                    ? const SizedBox(height: 8)
+                    : const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final tag = _controller.tags[index];
+                  final selected = tag == _controller.selectedTag;
+                  if (tagLayoutLeft) {
+                    final color = Theme.of(context).colorScheme;
+                    return InkWell(
+                      onTap: () => _controller.selectTag(tag),
+                      borderRadius: BorderRadius.circular(12),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? color.primary.withOpacity(0.12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: selected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            color: selected
+                                ? color.primary
+                                : color.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     );
-                  },
-                ),
+                  }
+                  return Center(
+                    child: ChoiceChip(
+                      label: Text(tag),
+                      selected: selected,
+                      onSelected: (_) => _controller.selectTag(tag),
+                      shape: const StadiumBorder(),
+                      showCheckmark: false,
+                    ),
+                  );
+                },
               ),
-              Expanded(
-                child: _controller.accounts.isEmpty
-                    ? const Center(child: Text('暂无账号，请点击右上角 + 添加'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        itemCount: _controller.accounts.length,
-                        itemBuilder: (context, index) {
-                          final account = _controller.accounts[index];
-                          final firstItemValue =
-                              account.accountItemList.isNotEmpty
-                              ? account.accountItemList.first.itemValue
-                              : '';
-                          return GestureDetector(
-                            onSecondaryTap: () =>
-                                _showDeleteConfirm(context, account),
-                            onLongPress: () =>
-                                _showDeleteConfirm(context, account),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primaryContainer,
-                                child: Text(
-                                  account.name.isNotEmpty
-                                      ? account.name
-                                            .substring(0, 1)
-                                            .toUpperCase()
-                                      : '?',
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              title: Text(account.name),
-                              subtitle: Text(
-                                firstItemValue,
+            );
+            final accountList = Expanded(
+              child: _controller.accounts.isEmpty
+                  ? const Center(child: Text('暂无账号，请点击右上角 + 添加'))
+                  : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: _controller.accounts.length,
+                      itemBuilder: (context, index) {
+                        final account = _controller.accounts[index];
+                        final firstItemValue =
+                            account.accountItemList.isNotEmpty
+                            ? account.accountItemList.first.itemValue
+                            : '';
+                        return GestureDetector(
+                          onSecondaryTap: () =>
+                              _showDeleteConfirm(context, account),
+                          onLongPress: () =>
+                              _showDeleteConfirm(context, account),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
+                              child: Text(
+                                account.name.isNotEmpty
+                                    ? account.name.substring(0, 1).toUpperCase()
+                                    : '?',
                                 style: TextStyle(
-                                  fontSize: 12,
                                   color: Theme.of(
                                     context,
-                                  ).textTheme.bodySmall?.color,
+                                  ).colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        DetailPage(account: account),
-                                  ),
-                                );
-                              },
                             ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          );
+                            title: Text(account.name),
+                            subtitle: Text(
+                              firstItemValue,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodySmall?.color,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailPage(account: account),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+            );
+            return tagLayoutLeft
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                    child: Row(
+                      children: [
+                        tagList,
+                        const SizedBox(width: 4),
+                        accountList,
+                      ],
+                    ),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                    child: Column(children: [tagList, accountList]),
+                  );
+          });
         },
       ),
     );

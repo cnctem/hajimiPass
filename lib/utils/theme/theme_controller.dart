@@ -12,6 +12,7 @@ class ThemeController extends GetxController {
   final currentTextScale = Pref.defaultTextScale.obs;
   final customColor = Pref.customColor.obs;
   final schemeVariant = Pref.schemeVariant.obs;
+  final tagLayoutLeft = Pref.tagLayoutLeft.obs;
 
   @override
   void onInit() {
@@ -39,6 +40,10 @@ class ThemeController extends GetxController {
     });
     ever(schemeVariant, (callback) {
       setting.put(SettingBoxKey.schemeVariant, callback);
+      Get.forceAppUpdate();
+    });
+    ever(tagLayoutLeft, (callback) {
+      setting.put(SettingBoxKey.tagLayoutLeft, callback);
       Get.forceAppUpdate();
     });
   }

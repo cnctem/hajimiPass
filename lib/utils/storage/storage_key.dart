@@ -12,4 +12,5 @@ abstract final class SettingBoxKey {
   static const String webdavUsername = 'webdavUsername';
   static const String webdavPassword = 'webdavPassword';
   static const String webdavDirectory = 'webdavDirectory';
+  static const String tagLayoutLeft = 'tagLayoutLeft';
 }

@@ -73,5 +73,15 @@ List<SettingsModel> get styleSettings {
           ? '默认'
           : controller.currentTextScale.value.toString(),
     ),
+    SwitchModel(
+      leading: const Icon(Icons.view_sidebar_outlined),
+      title: '标签栏左置',
+      subtitle: '关闭后标签栏移至顶部横排',
+      setKey: SettingBoxKey.tagLayoutLeft,
+      defaultVal: true,
+      onChanged: (value) {
+        controller.tagLayoutLeft.value = value;
+      },
+    ),
   ];
 }

@@ -38,4 +38,6 @@ abstract final class Pref {
       _setting.get(SettingBoxKey.webdavPassword, defaultValue: '');
   static String get webdavDirectory =>
       _setting.get(SettingBoxKey.webdavDirectory, defaultValue: '/');
+  static bool get tagLayoutLeft =>
+      _setting.get(SettingBoxKey.tagLayoutLeft, defaultValue: true);
 }
