@@ -176,7 +176,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         decoration: BoxDecoration(
                           color: selected
-                              ? color.primary.withOpacity(0.12)
+                              ? color.primary.withValues(alpha: 0.12)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                         ),

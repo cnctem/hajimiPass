@@ -106,7 +106,7 @@ class EditController extends ChangeNotifier {
   }
 
   void addTag(String tagName) {
-    final normalized = tagName.trim();
+    final normalized = HajimiStorage.normalizeTagName(tagName);
     if (normalized.isEmpty) return;
     if (account.tagList.any((t) => t.tagName == normalized)) return;
     account.tagList.add(Tag(tagName: normalized));

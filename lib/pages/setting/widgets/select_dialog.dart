@@ -29,20 +29,22 @@ class SelectDialog<T> extends StatelessWidget {
       content: Material(
         type: MaterialType.transparency,
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(values.length, (index) {
-              final item = values[index];
-              return RadioListTile<T>(
-                toggleable: toggleable,
-                dense: true,
-                value: item.$1,
-                groupValue: value,
-                onChanged: (v) => Navigator.of(context).pop(v ?? value),
-                title: Text(item.$2, style: titleMedium),
-                subtitle: subtitleBuilder?.call(context, index),
-              );
-            }),
+          child: RadioGroup<T?>(
+            groupValue: value,
+            onChanged: (v) => Navigator.of(context).pop(v ?? value),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(values.length, (index) {
+                final item = values[index];
+                return RadioListTile<T?>(
+                  toggleable: toggleable,
+                  dense: true,
+                  value: item.$1,
+                  title: Text(item.$2, style: titleMedium),
+                  subtitle: subtitleBuilder?.call(context, index),
+                );
+              }),
+            ),
           ),
         ),
       ),

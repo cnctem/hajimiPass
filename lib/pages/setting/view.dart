@@ -5,6 +5,7 @@ import 'package:hajimipass/pages/setting/backup_setting.dart';
 import 'package:hajimipass/pages/setting/models/setting_type.dart';
 import 'package:hajimipass/pages/setting/security_setting.dart';
 import 'package:hajimipass/pages/setting/style_setting.dart';
+import 'package:hajimipass/pages/setting/tag_setting.dart';
 
 class _SettingItem {
   final SettingType type;
@@ -24,6 +25,11 @@ const _items = [
     type: SettingType.styleSetting,
     icon: Icon(Icons.palette_outlined),
     subtitle: '主题、字号、颜色',
+  ),
+  _SettingItem(
+    type: SettingType.tagSetting,
+    icon: Icon(Icons.label_outline),
+    subtitle: '编辑、删除全局标签',
   ),
   _SettingItem(
     type: SettingType.backupSetting,
@@ -54,14 +60,21 @@ class _SettingPageState extends State<SettingPage> {
       switch (type) {
         case SettingType.securitySettings:
           Get.to(() => const SecuritySetting());
+          break;
         case SettingType.styleSetting:
           Get.to(() => const StyleSetting());
+          break;
+        case SettingType.tagSetting:
+          Get.to(() => const TagSetting());
+          break;
         case SettingType.backupSetting:
           Get.to(() => const BackupSetting());
+          break;
         case SettingType.extraSetting:
           break;
         case SettingType.about:
           Get.to(() => const AboutPage());
+          break;
       }
     } else {
       setState(() => _type = type);
@@ -74,6 +87,7 @@ class _SettingPageState extends State<SettingPage> {
   Widget _buildDetail() => switch (_type) {
     SettingType.securitySettings => const SecuritySetting(showAppBar: false),
     SettingType.styleSetting => const StyleSetting(showAppBar: false),
+    SettingType.tagSetting => const TagSetting(showAppBar: false),
     SettingType.backupSetting => const BackupSetting(showAppBar: false),
     SettingType.extraSetting => const SizedBox.shrink(),
     SettingType.about => const AboutPage(showAppBar: false),

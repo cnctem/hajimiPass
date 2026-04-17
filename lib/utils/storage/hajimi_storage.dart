@@ -16,6 +16,10 @@ class HajimiStorage extends ChangeNotifier {
   static final HajimiStorage _instance = HajimiStorage._internal();
   static HajimiStorage get instance => _instance;
 
+  static String normalizeTagName(String tagName) {
+    return tagName.trim();
+  }
+
   HajimiStorage._internal();
 
   AccountList? _accountList;
@@ -258,7 +262,60 @@ class HajimiStorage extends ChangeNotifier {
 
   void syncTagCatalog() {
     if (_accountList == null) return;
+    _normalizeAccountTags(_accountList!.accountList);
     _accountList!.tagList = _mergeTags(_collectTags(_accountList!.accountList));
+  }
+
+  Future<void> batchUpdateTags({
+    Map<String, String> renameMap = const {},
+    Iterable<String> deleteTags = const [],
+  }) async {
+    if (!_unlocked && _password.isNotEmpty) return;
+    if (_accountList == null) return;
+
+    final normalizedDeleteTags = deleteTags
+        .map(normalizeTagName)
+        .where((tag) => tag.isNotEmpty)
+        .toSet();
+    final normalizedRenameMap = <String, String>{};
+
+    for (final entry in renameMap.entries) {
+      final oldTag = normalizeTagName(entry.key);
+      if (oldTag.isEmpty) continue;
+
+      final newTag = normalizeTagName(entry.value);
+      if (newTag.isEmpty) {
+        normalizedDeleteTags.add(oldTag);
+        continue;
+      }
+      if (oldTag == newTag) continue;
+
+      normalizedRenameMap[oldTag] = newTag;
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final account in _accountList!.accountList) {
+      final nextTagList = <Tag>[];
+      for (final tag in account.tagList) {
+        final resolvedTagName = _resolveTagName(
+          tag.tagName,
+          renameMap: normalizedRenameMap,
+          deleteTags: normalizedDeleteTags,
+        );
+        if (resolvedTagName.isEmpty) continue;
+        nextTagList.add(Tag(tagName: resolvedTagName));
+      }
+
+      final normalizedTagList = _normalizeTags(nextTagList);
+      if (_tagNamesChanged(account.tagList, normalizedTagList)) {
+        account
+          ..tagList = normalizedTagList
+          ..lastEditTime = now;
+      }
+    }
+
+    syncTagCatalog();
+    await save();
   }
 
   Future<void> addAccount(Account account) async {
@@ -299,12 +356,15 @@ class HajimiStorage extends ChangeNotifier {
     }
 
     if (overwrite) {
+      final importedAccounts = imported.accountList
+          .map(_copyAccountWithNormalizedTags)
+          .toList();
       _accountList = AccountList(
-        accountList: imported.accountList.map(_copyAccount).toList(),
+        accountList: importedAccounts,
         lastEditTime: DateTime.now().millisecondsSinceEpoch,
         tagList: _mergeTags([
           ...imported.tagList,
-          ..._collectTags(imported.accountList),
+          ..._collectTags(importedAccounts),
         ]),
         version: imported.version > 0 ? imported.version : 1,
       );
@@ -319,6 +379,7 @@ class HajimiStorage extends ChangeNotifier {
     }
 
     final local = _accountList!;
+    _normalizeAccountTags(local.accountList);
     final byName = <String, Account>{
       for (final a in local.accountList) a.name: a,
     };
@@ -382,17 +443,65 @@ class HajimiStorage extends ChangeNotifier {
     );
   }
 
+  Account _copyAccountWithNormalizedTags(Account account) {
+    final copy = _copyAccount(account);
+    copy.tagList = _normalizeTags(copy.tagList);
+    return copy;
+  }
+
   List<Tag> _mergeTags(List<Tag> tags) {
-    final names = <String>{};
-    final merged = <Tag>[];
-    for (final tag in tags) {
-      final normalized = tag.tagName.trim();
-      if (normalized.isEmpty || names.contains(normalized)) continue;
-      names.add(normalized);
-      merged.add(Tag(tagName: normalized));
+    return _normalizeTags(tags, sort: true);
+  }
+
+  void _normalizeAccountTags(List<Account> accounts) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final account in accounts) {
+      final normalizedTagList = _normalizeTags(account.tagList);
+      if (_tagNamesChanged(account.tagList, normalizedTagList)) {
+        account
+          ..tagList = normalizedTagList
+          ..lastEditTime = now;
+      }
     }
-    merged.sort((a, b) => a.tagName.compareTo(b.tagName));
-    return merged;
+  }
+
+  List<Tag> _normalizeTags(Iterable<Tag> tags, {bool sort = false}) {
+    final names = <String>{};
+    final normalizedTags = <Tag>[];
+    for (final tag in tags) {
+      final normalized = normalizeTagName(tag.tagName);
+      if (normalized.isEmpty || !names.add(normalized)) continue;
+      normalizedTags.add(Tag(tagName: normalized));
+    }
+    if (sort) {
+      normalizedTags.sort((a, b) => a.tagName.compareTo(b.tagName));
+    }
+    return normalizedTags;
+  }
+
+  String _resolveTagName(
+    String tagName, {
+    required Map<String, String> renameMap,
+    required Set<String> deleteTags,
+  }) {
+    var current = normalizeTagName(tagName);
+    if (current.isEmpty) return '';
+
+    final visited = <String>{};
+    while (visited.add(current)) {
+      if (deleteTags.contains(current)) return '';
+      final renamed = renameMap[current];
+      if (renamed == null || renamed == current) return current;
+      current = renamed;
+    }
+    return current;
+  }
+
+  bool _tagNamesChanged(List<Tag> current, List<Tag> next) {
+    return !listEquals(
+      current.map((tag) => tag.tagName).toList(),
+      next.map((tag) => tag.tagName).toList(),
+    );
   }
 
   List<Tag> _collectTags(List<Account> accounts) {

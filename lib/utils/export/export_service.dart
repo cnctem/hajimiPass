@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:file_selector/file_selector.dart' show XTypeGroup, getSaveLocation;
+import 'package:file_selector/file_selector.dart'
+    show XTypeGroup, getSaveLocation;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:hajimipass/utils/hajimi/contact_store.dart';
@@ -161,17 +162,18 @@ class ExportService {
   }
 
   String _accountListToTxt(AccountList accountList) {
-    final buffer = StringBuffer();
-    buffer.writeln('=== HajimiPass 账号导出 ===');
-    buffer.writeln('导出时间: ${DateTime.now().toLocal()}');
-    buffer.writeln('账号数量: ${accountList.accountList.length}');
-    buffer.writeln('');
+    final buffer = StringBuffer()
+      ..writeln('=== HajimiPass 账号导出 ===')
+      ..writeln('导出时间: ${DateTime.now().toLocal()}')
+      ..writeln('账号数量: ${accountList.accountList.length}')
+      ..writeln('');
 
     for (var i = 0; i < accountList.accountList.length; i++) {
       final account = accountList.accountList[i];
-      buffer.writeln('--- 账号 ${i + 1} ---');
-      buffer.writeln('名称: ${account.name}');
-      buffer.writeln('收藏: ${account.favorite ? '是' : '否'}');
+      buffer
+        ..writeln('--- 账号 ${i + 1} ---')
+        ..writeln('名称: ${account.name}')
+        ..writeln('收藏: ${account.favorite ? '是' : '否'}');
       if (account.tagList.isNotEmpty) {
         buffer.writeln(
           '标签: ${account.tagList.map((t) => t.tagName).join(', ')}',
@@ -267,10 +269,9 @@ class ExportService {
       final tempDir = await getTemporaryDirectory();
       final file = File(p.join(tempDir.path, fileName));
       await file.writeAsString(content);
-      final shareResult = await Share.shareXFiles(
-        [XFile(file.path, mimeType: mimeType)],
-        text: 'HajimiPass 导出文件',
-      );
+      final shareResult = await Share.shareXFiles([
+        XFile(file.path, mimeType: mimeType),
+      ], text: 'HajimiPass 导出文件');
 
       switch (shareResult.status) {
         case ShareResultStatus.success:

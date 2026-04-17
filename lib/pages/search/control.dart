@@ -73,10 +73,7 @@ class HajimiSearchController extends ChangeNotifier {
       return false;
     }).toList();
 
-    // 根据名称排序
-    filtered.sort((a, b) => a.name.compareTo(b.name));
-
-    _accounts = filtered;
+    _accounts = filtered..sort((a, b) => a.name.compareTo(b.name));
     notifyListeners();
   }
 }
